@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>China's 14 Land Neighbours — Puzzle</title>
+  <link rel="stylesheet" href="css/style.css?v=7" />
+  <link rel="stylesheet" href="css/themes.css?v=7" />
+</head>
+<body>
+  <div id="app">
+    <header class="top-tray" id="tray-top" aria-label="Neighbour tray top"></header>
+
+    <main class="workspace">
+      <section class="playfield-wrap">
+        <div class="playfield" id="playfield" aria-label="Map playfield">
+          <div class="map-world" id="map-world">
+            <div class="grid-overlay" id="grid"></div>
+            <div class="china-fixed" id="china-fixed"></div>
+            <div class="pieces-layer" id="pieces-layer"></div>
+          </div>
+        </div>
+        <div id="pct-label" class="pct-label" hidden>100%</div>
+        <div class="zoom-hint">Scroll = zoom · Drag empty map / right-drag / Space+drag = pan</div>
+      </section>
+
+      <aside class="guide" aria-label="Example map">
+        <div class="guide-img-wrap" id="overview-wrap">
+          <svg id="overview-svg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Assembled map of China and its 14 land neighbours"></svg>
+          <div id="overview-tooltip" class="overview-tooltip" hidden></div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="bottom-tray" id="tray-bottom" aria-label="Neighbour tray bottom"></footer>
+  </div>
+
+  <div id="reward-overlay" class="reward-overlay" hidden>
+    <div class="reward-card">
+      <video id="reward-video" playsinline></video>
+      <div id="reward-fallback" class="reward-fallback" hidden>
+        <div class="rf-stage" id="rf-stage"></div>
+        <p class="rf-caption" id="rf-caption"></p>
+      </div>
+      <button type="button" id="reward-close" class="reward-close">Play again</button>
+    </div>
+  </div>
+
+  <script src="js/facts.js?v=7"></script>
+  <script src="js/game.js?v=7"></script>
+</body>
+</html>
