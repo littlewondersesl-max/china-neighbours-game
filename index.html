@@ -3,50 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>China's 14 Land Neighbours — Puzzle</title>
-  <link rel="stylesheet" href="css/style.css?v=7" />
-  <link rel="stylesheet" href="css/themes.css?v=7" />
+  <title>Land Neighbours</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div id="app">
-    <header class="top-tray" id="tray-top" aria-label="Neighbour tray top"></header>
-
+  <div id="app" class="mode-world">
+    <header id="tray-top" class="tray" aria-label="Neighbour tray"></header>
     <main class="workspace">
-      <section class="playfield-wrap">
-        <div class="playfield" id="playfield" aria-label="Map playfield">
-          <div class="map-world" id="map-world">
-            <div class="grid-overlay" id="grid"></div>
-            <div class="china-fixed" id="china-fixed"></div>
-            <div class="pieces-layer" id="pieces-layer"></div>
-          </div>
+      <section class="play-wrap">
+        <div id="playfield">
+          <svg id="graticule" aria-hidden="true"></svg>
+          <canvas id="gl"></canvas>
+          <svg id="overlay" aria-hidden="true">
+            <g id="lines"></g>
+            <g id="weld"></g>
+          </svg>
+          <div id="labels"></div>
+          <div id="handles"></div>
+          <button type="button" id="back" hidden>Back · 返回</button>
+          <div id="title"></div>
+          <p id="hint"></p>
+          <div id="toast" hidden></div>
         </div>
-        <div id="pct-label" class="pct-label" hidden>100%</div>
-        <div class="zoom-hint">Scroll = zoom · Drag empty map / right-drag / Space+drag = pan</div>
       </section>
-
-      <aside class="guide" aria-label="Example map">
-        <div class="guide-img-wrap" id="overview-wrap">
-          <svg id="overview-svg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Assembled map of China and its 14 land neighbours"></svg>
-          <div id="overview-tooltip" class="overview-tooltip" hidden></div>
-        </div>
+      <aside id="guide" hidden>
+        <h2>Example map · 示例地图</h2>
+        <div id="guide-svg-wrap"></div>
       </aside>
     </main>
-
-    <footer class="bottom-tray" id="tray-bottom" aria-label="Neighbour tray bottom"></footer>
+    <footer id="tray-bottom" class="tray" aria-label="Neighbour tray"></footer>
   </div>
 
-  <div id="reward-overlay" class="reward-overlay" hidden>
-    <div class="reward-card">
-      <video id="reward-video" playsinline></video>
-      <div id="reward-fallback" class="reward-fallback" hidden>
-        <div class="rf-stage" id="rf-stage"></div>
-        <p class="rf-caption" id="rf-caption"></p>
+  <div id="pct" hidden>100%</div>
+
+  <div id="card-modal" hidden>
+    <div class="card-panel" role="dialog" aria-modal="true" aria-labelledby="card-title">
+      <button type="button" class="icon-x" data-close aria-label="Close">×</button>
+      <div class="card-kicker" id="card-kicker"></div>
+      <h2 id="card-title"></h2>
+      <div id="card-body">
+        <div id="card-shape-wrap" class="stage">
+          <canvas id="card-gl" width="640" height="340"></canvas>
+          <svg id="card-svg" viewBox="0 0 640 340"></svg>
+        </div>
+        <div id="card-copy">
+          <p id="card-en"></p>
+          <p id="card-zh"></p>
+        </div>
+        <div id="card-flag" hidden>
+          <div class="flag-stage"><img id="flag-img" alt="" /></div>
+          <p id="flag-caption"></p>
+        </div>
+        <div id="card-photos" class="photo-grid" hidden></div>
       </div>
-      <button type="button" id="reward-close" class="reward-close">Play again</button>
+      <div class="card-nav">
+        <button type="button" id="card-back" data-back>Back · 上一张</button>
+        <div class="dots" id="card-dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <button type="button" id="card-next" data-next>Next · 下一张</button>
+      </div>
     </div>
   </div>
 
-  <script src="js/facts.js?v=7"></script>
-  <script src="js/game.js?v=7"></script>
+  <div id="reward" hidden>
+    <div class="reward-panel">
+      <p class="reward-count" id="reward-count"></p>
+      <p class="reward-en" id="reward-en"></p>
+      <p class="reward-zh" id="reward-zh"></p>
+      <button type="button" id="reward-back">Back to map · 返回地图</button>
+    </div>
+  </div>
+
+  <div id="loading">Loading the map…</div>
+
+  <script src="js/vendor/d3-array.min.js"></script>
+  <script src="js/vendor/d3-geo.min.js"></script>
+  <script src="js/vendor/earcut.min.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
