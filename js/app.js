@@ -1,10 +1,13 @@
 import { makeLaea, buildMesh, boundsOfFeature, pairKey, screenPath, linePath, absLinePath } from "./geo.js";
 import { createView } from "./gl.js";
+import { LANGS, pick, line, htmlStack, esc, getLang, setLang, onLangChange, activeLangs, langButtonText, scriptLang } from "./i18n.js";
 
 const SIZE_TOL = 0.07;
 const POS_TOL_KM = 180;
 const MIN_KMPP = 0.8;
 const MAX_KMPP = 40;
+const GLOBE_MIN_MUL = 0.18;
+const GLOBE_MAX_MUL = 5.2;
 const CHINA_TOP = ["RUS", "KAZ", "MNG", "KGZ", "TJK", "AFG", "PAK"];
 const CHINA_BOTTOM = ["IND", "NPL", "BTN", "MMR", "LAO", "VNM", "PRK"];
 const PALETTE = ["#c4b07a", "#8fb08a", "#d2a07a", "#9eb4c8", "#c9b48a", "#a8c4a2", "#e0c98a", "#b7a48a"];
@@ -13,10 +16,10 @@ const CONT_ZH = {
   Oceania: "大洋洲", Antarctica: "南极洲", Asia: "亚洲", "Seven seas (open ocean)": "海洋",
 };
 const SLOTS = [
-  ["animal", "National animal", "代表动物"],
-  ["currency", "Currency", "货币"],
-  ["landmark", "Famous place", "著名地点"],
-  ["dish", "Popular dish", "美食"],
+  ["animal", "animal"],
+  ["currency", "currency"],
+  ["landmark", "landmark"],
+  ["dish", "dish"],
 ];
 const BUILD_LABEL = { en: "Build Continents", zh: "拼出大洲" };
 const BUILD_TARGET = { continent: "Asia", en: "Asia", zh: "亚洲", lon: 95, lat: 35 };
@@ -84,7 +87,14 @@ let askIso = null;
 let namedFlash = null;
 let buildIsos = [];
 let buildSet = new Set();
-let nameIndex = new Map();
+let namesByLang = { en: new Map(), zh: new Map() };
+let showNeighbourHint = false;
+let guideIds = [];
+let globeAnchor = null;
+let didPinch = false;
+const pointers = new Map();
+let pinching = false;
+let pinch = null;
 let proj = null;
 let meshes = new Map();
 let seamKm = new Map();
@@ -174,16 +184,21 @@ async function init() {
     const jump = (params.get("centre") || "").toUpperCase();
     if (jump && borders.neighbours[jump] && borders.neighbours[jump].length) enterPuzzle(jump);
     else enterWorld();
+    applyLanguage();
     loadingEl.hidden = true;
     requestDraw();
   } catch (err) {
-    loadingEl.textContent = err.message || "The map could not start.";
+    loadingEl.textContent = err.message || pick("loadError").main;
     console.error(err);
   }
 }
 
 function bind() {
-  playfield.addEventListener("pointerdown", onPlayDown);
+  onLangChange(applyLanguage);
+  playfield.addEventListener("pointerdown", onPointerDown);
+  playfield.addEventListener("pointermove", onPointerMove);
+  playfield.addEventListener("pointerup", onPointerUp);
+  playfield.addEventListener("pointercancel", onPointerUp);
   playfield.addEventListener("wheel", onWheel, { passive: false });
   playfield.addEventListener("contextmenu", (e) => e.preventDefault());
   backBtn.addEventListener("click", () => back());
@@ -205,6 +220,22 @@ function bind() {
   $("ask-form").addEventListener("submit", onAskSubmit);
   $("ask-input").addEventListener("input", onAskInput);
   $("ask-cancel").addEventListener("click", closeAsk);
+  $("lang-toggle").addEventListener("click", (e) => {
+    e.stopPropagation();
+    const panel = $("lang-panel");
+    panel.hidden = !panel.hidden;
+    $("lang-toggle").setAttribute("aria-expanded", panel.hidden ? "false" : "true");
+  });
+  $("lang-main").addEventListener("change", () => setLang($("lang-main").value, getLang().sub));
+  $("lang-sub").addEventListener("change", () => {
+    const value = $("lang-sub").value;
+    setLang(getLang().main, value || null);
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if ($("lang").contains(e.target)) return;
+    $("lang-panel").hidden = true;
+    $("lang-toggle").setAttribute("aria-expanded", "false");
+  });
   $("card-modal").addEventListener("click", onCardClick);
   $("reward-back").addEventListener("click", closeReward);
   $("reward").addEventListener("click", (e) => {
@@ -215,13 +246,19 @@ function bind() {
 }
 
 function onEsc() {
+  if (!$("lang-panel").hidden) {
+    $("lang-panel").hidden = true;
+    $("lang-toggle").setAttribute("aria-expanded", "false");
+    return;
+  }
   if (!$("reward").hidden) { closeReward(); return; }
   if (cardsOpen) { closeCards(); return; }
   if (!$("ask").hidden) closeAsk();
 }
 
-function showToast(en, zh) {
-  toastEl.innerHTML = `<strong>${en}</strong><span>${zh}</span>`;
+function showToast(row, vars) {
+  const text = pick(row, vars);
+  toastEl.innerHTML = `<strong>${esc(text.main)}</strong>${text.sub ? `<span>${esc(text.sub)}</span>` : ""}`;
   toastEl.hidden = false;
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => { toastEl.hidden = true; }, 4200);
@@ -250,7 +287,7 @@ function syncGuide() {
   appEl.classList.toggle("guide-open", show);
   $("guide").hidden = !show;
   const btn = $("reveal-map");
-  btn.textContent = show ? "Hide map · 收起地图" : "Reveal map · 显示地图";
+  btn.textContent = line(show ? "hideMap" : "reveal");
   btn.setAttribute("aria-pressed", show ? "true" : "false");
 }
 
@@ -268,6 +305,129 @@ function syncTools() {
   if (!build) $("progress").hidden = true;
 }
 
+function nameBlock(meta) {
+  const text = pick({ en: meta.name, zh: meta.zh });
+  return `<div class="name">${esc(text.main)}${text.sub ? `<small>${esc(text.sub)}</small>` : ""}</div>`;
+}
+
+function paintCopy(row) {
+  const text = pick(row);
+  $("card-en").textContent = text.main;
+  $("card-zh").textContent = text.sub;
+  $("card-zh").hidden = !text.sub;
+}
+
+function paintPhotoLabels() {
+  for (const [slot, key] of SLOTS) {
+    const fig = document.querySelector(`.photo-card[data-slot="${slot}"]`);
+    if (!fig) continue;
+    fig.querySelector(".eyebrow").textContent = line(key);
+  }
+}
+
+function paintLangControl() {
+  const lang = getLang();
+  $("lang-toggle").textContent = langButtonText();
+  $("lang-main-lab").textContent = pick("langMain").main;
+  $("lang-sub-lab").textContent = pick("langSub").main;
+  const main = $("lang-main");
+  const sub = $("lang-sub");
+  main.innerHTML = LANGS.map((item) => `<option value="${item.id}">${esc(item.name)}</option>`).join("");
+  sub.innerHTML = `<option value="">${esc(pick("langNone").main)}</option>`
+    + LANGS.filter((item) => item.id !== lang.main).map((item) => `<option value="${item.id}">${esc(item.name)}</option>`).join("");
+  main.value = lang.main;
+  sub.value = lang.sub || "";
+  document.documentElement.lang = lang.main === "zh" ? "zh-Hans" : "en";
+}
+
+function paintIslandNote() {
+  const text = pick("islandNote");
+  $("island-note").querySelector("strong").textContent = text.main;
+  const span = $("island-note").querySelector("span");
+  span.textContent = text.sub;
+  span.hidden = !text.sub;
+}
+
+function paintHeading() {
+  if (mode === "world") {
+    titleEl.innerHTML = htmlStack("appTitle");
+    hintEl.textContent = line("worldHint");
+    document.title = pick("appTitle").main;
+    return;
+  }
+  if (mode === "asia") {
+    titleEl.innerHTML = htmlStack({ en: "Asia", zh: "亚洲" });
+    hintEl.textContent = line(showNeighbourHint ? "asiaHint" : "asiaZoom");
+    document.title = `${pick({ en: "Asia", zh: "亚洲" }).main} — ${pick("appTitle").main}`;
+    return;
+  }
+  if (playKind === "build" && buildStart) {
+    const meta = shapeByIso.get(buildStart).properties;
+    const modeName = pick({ en: BUILD_LABEL.en, zh: BUILD_LABEL.zh });
+    const place = pick({ en: BUILD_TARGET.en, zh: BUILD_TARGET.zh });
+    const where = place.sub ? `${place.main} · ${place.sub}` : place.main;
+    titleEl.innerHTML = `<b>${esc(modeName.main)}</b>${modeName.sub ? `<span>${esc(modeName.sub)}</span>` : ""}<span class="where">${esc(where)}</span>`;
+    hintEl.textContent = buildNeighbours(buildStart).length
+      ? line("buildHint")
+      : line({
+        en: `${meta.name} is an island, so type a name and a capital to place the next country.`,
+        zh: `${meta.zh}是岛国，请输入国名和首都来放置下一个国家。`,
+      });
+    document.title = modeName.main;
+    return;
+  }
+  if (centreIso && shapeByIso.has(centreIso)) {
+    const meta = shapeByIso.get(centreIso).properties;
+    titleEl.innerHTML = htmlStack({
+      en: `${meta.name}'s land neighbours`,
+      zh: `${meta.zh}的陆地邻国`,
+    });
+    hintEl.textContent = line("puzzleHint");
+    document.title = `${pick({ en: meta.name, zh: meta.zh }).main} — ${pick("appTitle").main}`;
+  }
+}
+
+function refreshTrayNames() {
+  document.querySelectorAll(".tray-tile").forEach((tile) => {
+    const name = tile.querySelector(".name");
+    if (!name) {
+      tile.setAttribute("aria-label", pick("piece").main);
+      return;
+    }
+    const meta = shapeByIso.get(tile.dataset.code)?.properties;
+    if (!meta) return;
+    name.outerHTML = nameBlock(meta);
+  });
+}
+
+function applyLanguage() {
+  paintLangControl();
+  paintIslandNote();
+  $("back").textContent = line("back");
+  $("name-entry").textContent = line("enterName");
+  $("skip-label").textContent = line("skipCards");
+  $("choose-neighbours").textContent = line("neighbours");
+  $("choose-build").textContent = line("buildContinents");
+  $("mode-choice").querySelector("p").textContent = line("chooseGame");
+  $("guide-title").textContent = line("exampleMap");
+  $("guide-close").setAttribute("aria-label", pick("closeMap").main);
+  $("ask-cancel").textContent = line("cancel");
+  $("ask-ok").textContent = line("ok");
+  $("reward-back").textContent = line("backToMap");
+  $("card-back").textContent = line("cardBack");
+  loadingEl.textContent = pick("loading").main;
+  paintHeading();
+  syncGuide();
+  updateProgress();
+  paintPhotoLabels();
+  refreshTrayNames();
+  if (mode === "puzzle" && guideIds.length) buildGuide(guideIds);
+  paintAsk();
+  if (cardsOpen) renderCard();
+  if (!$("reward").hidden) renderReward();
+  requestDraw();
+}
+
 function enterWorld() {
   closeCards();
   closeReward();
@@ -282,9 +442,9 @@ function enterWorld() {
   globe.targetLon = 70;
   globe.targetLat = 18;
   globe.targetMul = 0.42;
-  titleEl.innerHTML = `<b>Land Neighbours</b><span>陆地邻国</span>`;
-  hintEl.textContent = "Drag to spin the globe · click a continent · 拖动旋转，点击大洲";
-  document.title = "Land Neighbours";
+  globeAnchor = null;
+  showNeighbourHint = false;
+  paintHeading();
   animateGlobe();
   requestDraw();
 }
@@ -305,16 +465,17 @@ function enterAsia() {
   globe.targetLon = 90;
   globe.targetLat = 28;
   globe.targetMul = 0.92;
-  titleEl.innerHTML = `<b>Asia</b><span>亚洲</span>`;
-  hintEl.textContent = "";
-  document.title = "Asia — Land Neighbours";
+  globeAnchor = null;
+  showNeighbourHint = false;
+  paintHeading();
   animateGlobe();
   requestDraw();
 }
 
 function chooseNeighbours() {
   if (mode !== "asia") enterAsia();
-  hintEl.textContent = "Click a country to start its neighbour puzzle · 点击国家，拼它的邻国";
+  showNeighbourHint = true;
+  paintHeading();
 }
 
 function back() {
@@ -327,15 +488,35 @@ function animateGlobe() {
   globeAnimating = true;
   const step = () => {
     if (mode === "puzzle") { globeAnimating = false; return; }
-    globe.lon0 += (globe.targetLon - globe.lon0) * 0.16;
-    globe.lat0 += (globe.targetLat - globe.lat0) * 0.16;
-    globe.mul += (globe.targetMul - globe.mul) * 0.16;
+    if (globeAnchor) {
+      globe.mul += (globe.targetMul - globe.mul) * 0.35;
+      holdAnchor(globeAnchor);
+      globe.targetLon = globe.lon0;
+      globe.targetLat = globe.lat0;
+    } else {
+      globe.lon0 += (globe.targetLon - globe.lon0) * 0.16;
+      globe.lat0 += (globe.targetLat - globe.lat0) * 0.16;
+      globe.mul += (globe.targetMul - globe.mul) * 0.16;
+    }
     requestDraw();
-    const done = Math.abs(globe.targetLon - globe.lon0) < 0.08
+    const zoomed = globeAnchor
+      ? Math.abs(globe.targetMul - globe.mul) < 0.002
+      : false;
+    const flown = !globeAnchor
+      && Math.abs(globe.targetLon - globe.lon0) < 0.08
       && Math.abs(globe.targetLat - globe.lat0) < 0.08
       && Math.abs(globe.targetMul - globe.mul) < 0.004;
-    if (done) globeAnimating = false;
-    else requestAnimationFrame(step);
+    if (zoomed || flown) {
+      if (globeAnchor) {
+        globe.mul = globe.targetMul;
+        holdAnchor(globeAnchor);
+        globe.targetLon = globe.lon0;
+        globe.targetLat = globe.lat0;
+        globeAnchor = null;
+        requestDraw();
+      }
+      globeAnimating = false;
+    } else requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
 }
@@ -354,32 +535,37 @@ function normName(raw) {
 function indexNames() {
   buildIsos = [];
   buildSet = new Set();
-  nameIndex = new Map();
+  namesByLang = { en: new Map(), zh: new Map() };
   for (const [iso, feature] of shapeByIso) {
     if (feature.properties.continent === BUILD_TARGET.continent) {
       buildIsos.push(iso);
       buildSet.add(iso);
     }
-    addName(feature.properties.name, iso);
-    addName(feature.properties.zh, iso);
+    addName(feature.properties.name, iso, "en");
+    addName(feature.properties.zh, iso, "zh");
   }
   for (const [iso, list] of Object.entries(ALIASES)) {
     if (!shapeByIso.has(iso)) continue;
-    for (const alias of list) addName(alias, iso);
+    for (const alias of list) addName(alias, iso, scriptLang(alias));
   }
   buildIsos.sort();
 }
 
-function addName(raw, iso) {
+function addName(raw, iso, langId) {
   const key = normName(raw);
-  if (!key || nameIndex.has(key)) return;
-  nameIndex.set(key, iso);
+  const bucket = namesByLang[langId];
+  if (!key || !bucket || bucket.has(key)) return;
+  bucket.set(key, iso);
 }
 
 function lookupCountry(raw) {
   const key = normName(raw);
   if (!key) return { kind: "empty" };
-  const iso = nameIndex.get(key);
+  let iso = null;
+  for (const langId of activeLangs()) {
+    const hit = namesByLang[langId]?.get(key);
+    if (hit) { iso = hit; break; }
+  }
   if (!iso) return { kind: "unknown" };
   const meta = shapeByIso.get(iso).properties;
   if (!buildSet.has(iso)) return { kind: "outside", iso, meta };
@@ -388,9 +574,17 @@ function lookupCountry(raw) {
 
 function capitalAnswers(iso) {
   const list = [];
+  const langs = new Set(activeLangs());
   const card = cards[iso];
-  if (card?.capital) list.push(card.capital.en, card.capital.zh);
-  if (EXTRA_CAPITALS[iso]) list.push(...EXTRA_CAPITALS[iso]);
+  if (card?.capital) {
+    if (langs.has("en") && card.capital.en) list.push(card.capital.en);
+    if (langs.has("zh") && card.capital.zh) list.push(card.capital.zh);
+  }
+  if (EXTRA_CAPITALS[iso]) {
+    for (const name of EXTRA_CAPITALS[iso]) {
+      if (langs.has(scriptLang(name))) list.push(name);
+    }
+  }
   return list;
 }
 
@@ -483,7 +677,7 @@ function updateProgress() {
   if (playKind !== "build" || mode !== "puzzle") return;
   const el = $("progress");
   el.hidden = false;
-  el.textContent = `${placedCount()} / ${buildIsos.length} placed · 已放好`;
+  el.textContent = line("placed", { n: placedCount(), total: buildIsos.length });
   syncIslandNote();
 }
 
@@ -558,9 +752,8 @@ function enterPuzzle(iso) {
   buildTrays(trays, false);
   buildGuide(need);
   const meta = shapeByIso.get(iso).properties;
-  titleEl.innerHTML = `<b>${meta.name}'s land neighbours</b><span>${meta.zh}的陆地邻国</span>`;
-  hintEl.textContent = "Scroll = zoom · drag a corner to resize · drag empty map / right-drag / Space+drag = pan";
-  document.title = `${meta.name} — Land Neighbours`;
+  paintHeading();
+  document.title = `${pick({ en: meta.name, zh: meta.zh }).main} — ${pick("appTitle").main}`;
   syncIslandNote();
   requestAnimationFrame(() => {
     fitMesh(centreMesh, 0.14);
@@ -611,12 +804,7 @@ function enterBuild(iso) {
   const rest = shuffle(need.filter((id) => id !== iso));
   buildTrays({ top: rest, bottom: [] }, true);
   buildGuide(need);
-  const meta = shapeByIso.get(iso).properties;
-  titleEl.innerHTML = `<b>${BUILD_LABEL.en}</b><span>${BUILD_TARGET.en} · ${BUILD_TARGET.zh}</span>`;
-  hintEl.textContent = buildNeighbours(iso).length
-    ? "A shape locks only when it touches the chain · or enter a name and its capital · 形状要连上已放好的国家，或输入国名和首都"
-    : `${meta.name} is an island, so type a name and a capital to place the next country. · ${meta.zh}是岛国，请输入国名和首都来放置下一个国家。`;
-  document.title = `${BUILD_LABEL.en} · ${BUILD_LABEL.zh}`;
+  paintHeading();
   updateProgress();
   requestAnimationFrame(() => {
     fitIds(need, 0.08);
@@ -683,9 +871,9 @@ function buildTrays(trays, nameless) {
     const tile = document.createElement("div");
     tile.className = "tray-tile";
     tile.dataset.code = iso;
-    const name = nameless ? "" : `<div class="name">${meta.name}<small>${meta.zh}</small></div>`;
+    const name = nameless ? "" : nameBlock(meta);
     tile.innerHTML = `${thumbHtml(iso)}${name}`;
-    if (nameless) tile.setAttribute("aria-label", "Piece");
+    if (nameless) tile.setAttribute("aria-label", pick("piece").main);
     tile.addEventListener("pointerdown", (e) => startTrayDrag(e, iso));
     return tile;
   };
@@ -698,6 +886,7 @@ function markTray(iso, used) {
 }
 
 function buildGuide(ids) {
+  guideIds = ids.slice();
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const id of ids) {
     const m = meshes.get(id);
@@ -710,6 +899,7 @@ function buildGuide(ids) {
   const parts = [];
   ids.forEach((id, i) => {
     const m = meshes.get(id);
+    if (!m) return;
     const meta = m.feature.properties;
     let d = "";
     for (const ring of m.rings) {
@@ -721,10 +911,11 @@ function buildGuide(ids) {
       d += "Z ";
     }
     const fill = id === centreIso ? "#6f9468" : PALETTE[i % PALETTE.length];
-    parts.push(`<path d="${d}" fill="${fill}" stroke="#1c2a24" stroke-width="${(span / 520).toFixed(2)}"><title>${meta.name} · ${meta.zh}</title></path>`);
+    const label = pick({ en: meta.name, zh: meta.zh }).main;
+    parts.push(`<path d="${d}" fill="${fill}" stroke="#1c2a24" stroke-width="${(span / 520).toFixed(2)}"><title>${esc(line({ en: meta.name, zh: meta.zh }))}</title></path>`);
     const labelCut = playKind === "build" ? 0.018 : 0.07;
     if (m.width > span * labelCut) {
-      parts.push(`<text x="${m.cx.toFixed(1)}" y="${(-m.cy).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="${(span / 38).toFixed(1)}" fill="#1b2420">${meta.name}</text>`);
+      parts.push(`<text x="${m.cx.toFixed(1)}" y="${(-m.cy).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="${(span / 38).toFixed(1)}" fill="#1b2420">${esc(label)}</text>`);
     }
   });
   $("guide-svg-wrap").innerHTML = `<svg viewBox="${minX.toFixed(1)} ${(-maxY).toFixed(1)} ${(maxX - minX).toFixed(1)} ${(maxY - minY).toFixed(1)}">${parts.join("")}</svg>`;
@@ -889,7 +1080,8 @@ function drawLabels(order) {
     const wpx = mesh.width * piece.scale / view.kmPerPx;
     if (playKind !== "build" && wpx < 36 && piece.iso !== selected) continue;
     const meta = mesh.feature.properties;
-    html += `<div class="map-label" style="left:${sx}px;top:${sy}px"><b>${meta.name}</b><span>${meta.zh}</span></div>`;
+    const text = pick({ en: meta.name, zh: meta.zh });
+    html += `<div class="map-label" style="left:${sx}px;top:${sy}px"><b>${esc(text.main)}</b>${text.sub ? `<span>${esc(text.sub)}</span>` : ""}</div>`;
   }
   labelsEl.innerHTML = html;
 }
@@ -979,12 +1171,20 @@ function onPlayDown(e) {
 }
 
 function track(pointerId, move, up) {
-  const onMove = (e) => { if (e.pointerId === pointerId) move(e); };
+  const onMove = (e) => {
+    if (e.pointerId !== pointerId || pinching) return;
+    move(e);
+  };
   const onUp = (e) => {
     if (e.pointerId !== pointerId) return;
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
     window.removeEventListener("pointercancel", onUp);
+    if (pinching) return;
+    if (didPinch) {
+      if (pointers.size === 0) didPinch = false;
+      return;
+    }
     up(e);
   };
   window.addEventListener("pointermove", onMove);
@@ -993,6 +1193,8 @@ function track(pointerId, move, up) {
 }
 
 function startGlobeDrag(e) {
+  globeAnchor = null;
+  globe.targetMul = globe.mul;
   const startX = e.clientX, startY = e.clientY;
   const lon = globe.lon0, lat = globe.lat0;
   let moved = false;
@@ -1021,8 +1223,11 @@ function onGlobeClick(p) {
   if (mode === "world") {
     if (continent === "Asia") enterAsia();
     else {
-      const zh = CONT_ZH[continent] || continent;
-      showToast(`Coming soon — ${continent}`, `即将推出 · ${zh} · 制作中`);
+      const place = CONT_ZH[continent] || continent;
+      showToast({
+        en: `Coming soon — ${continent}`,
+        zh: `即将推出 · ${place}`,
+      });
     }
     return;
   }
@@ -1031,7 +1236,10 @@ function onGlobeClick(p) {
   if (!nbs || !nbs.length) {
     const name = f.properties.name;
     const zh = f.properties.zh;
-    showToast(`${name} has no land neighbours.`, `${zh}没有陆地邻国。`);
+    showToast({
+      en: `${name} has no land neighbours.`,
+      zh: `${zh}没有陆地邻国。`,
+    });
     return;
   }
   enterPuzzle(iso);
@@ -1158,10 +1366,7 @@ function trySnap(piece) {
   const dist = Math.hypot(piece.cx - mesh.cx, piece.cy - mesh.cy);
   if (sizeOk && dist <= POS_TOL_KM) {
     if (playKind === "build" && !touchesChain(piece.iso)) {
-      showToast(
-        "This shape has to touch a country already on the chain.",
-        "这块要和已经连上的国家接壤，才能放好。",
-      );
+      showToast("chainBlock");
       return;
     }
     piece.scale = 1;
@@ -1198,16 +1403,129 @@ function playWeld(iso, done) {
   }, 1800);
 }
 
+function syncViewSize() {
+  const w = playfield.clientWidth;
+  const h = playfield.clientHeight;
+  if (w > 2 && h > 2) {
+    view.width = w;
+    view.height = h;
+  }
+}
+
 function onWheel(e) {
-  if (mode !== "puzzle" || cardsOpen) return;
+  if (cardsOpen) return;
+  if (mode !== "puzzle" && mode !== "world" && mode !== "asia") return;
   e.preventDefault();
+  syncViewSize();
+  const dy = wheelDelta(e);
+  if (!dy) return;
+  const factor = Math.exp(-dy * 0.0016);
   const p = localPoint(e);
-  const before = pxToGeo(p.x, p.y);
-  const factor = e.deltaY > 0 ? 1.1 : 0.9;
-  view.kmPerPx = clamp(view.kmPerPx * factor, MIN_KMPP, MAX_KMPP);
-  view.originX = before.gx - p.x * view.kmPerPx;
-  view.originY = before.gy - (view.height - p.y) * view.kmPerPx;
+  if (mode === "puzzle") {
+    if (!proj) return;
+    const before = pxToGeo(p.x, p.y);
+    view.kmPerPx = clamp(view.kmPerPx / factor, MIN_KMPP, MAX_KMPP);
+    view.originX = before.gx - p.x * view.kmPerPx;
+    view.originY = before.gy - (view.height - p.y) * view.kmPerPx;
+    requestDraw();
+    return;
+  }
+  globe.targetMul = clamp(globe.targetMul * factor, GLOBE_MIN_MUL, GLOBE_MAX_MUL);
+  const ll = invertGlobe(p.x, p.y);
+  globeAnchor = ll ? { lon: ll[0], lat: ll[1], x: p.x, y: p.y } : null;
+  animateGlobe();
+}
+
+function wheelDelta(e) {
+  if (e.deltaMode === 1) return e.deltaY * 16;
+  if (e.deltaMode === 2) return e.deltaY * view.height;
+  return e.deltaY;
+}
+
+function invertGlobe(px, py) {
+  const radius = globeRadius();
+  const dx = px - view.width / 2;
+  const dy = py - view.height / 2;
+  if (dx * dx + dy * dy > radius * radius * 0.98) return null;
+  ortho.rotate([-globe.lon0, -globe.lat0]).translate([view.width / 2, view.height / 2]).scale(radius);
+  const ll = ortho.invert([px, py]);
+  if (!ll || Number.isNaN(ll[0]) || Number.isNaN(ll[1])) return null;
+  return ll;
+}
+
+function holdAnchor(anchor) {
+  const radius = Math.min(view.width, view.height) * globe.mul;
+  if (radius < 8) return;
+  ortho.translate([view.width / 2, view.height / 2]).scale(radius);
+  let lon = globe.lon0;
+  let lat = globe.lat0;
+  for (let i = 0; i < 8; i++) {
+    ortho.rotate([-lon, -lat]);
+    const cur = ortho([anchor.lon, anchor.lat]);
+    if (!cur || Number.isNaN(cur[0])) break;
+    const errx = cur[0] - anchor.x;
+    const erry = cur[1] - anchor.y;
+    if (Math.hypot(errx, erry) < 0.6) break;
+    const cos = Math.max(0.25, Math.cos(lat * Math.PI / 180));
+    lon += (errx / radius) * (180 / Math.PI) / cos;
+    lat = clamp(lat - (erry / radius) * (180 / Math.PI), -75, 75);
+  }
+  globe.lon0 = lon;
+  globe.lat0 = lat;
+}
+
+function onPointerDown(e) {
+  if (e.target.closest("button, a, input, select, label, #lang")) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size >= 2) {
+    pinching = true;
+    didPinch = true;
+    const pts = [...pointers.values()];
+    pinch = {
+      dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
+      mul: globe.mul,
+      kmpp: view.kmPerPx,
+    };
+    return;
+  }
+  onPlayDown(e);
+}
+
+function onPointerMove(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (!pinching || pointers.size < 2 || !pinch) return;
+  syncViewSize();
+  const pts = [...pointers.values()];
+  const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+  const ratio = clamp(dist / pinch.dist, 0.2, 5);
+  const mid = localPoint({ clientX: (pts[0].x + pts[1].x) / 2, clientY: (pts[0].y + pts[1].y) / 2 });
+  if (mode === "puzzle" && proj) {
+    const before = pxToGeo(mid.x, mid.y);
+    view.kmPerPx = clamp(pinch.kmpp / ratio, MIN_KMPP, MAX_KMPP);
+    view.originX = before.gx - mid.x * view.kmPerPx;
+    view.originY = before.gy - (view.height - mid.y) * view.kmPerPx;
+    requestDraw();
+    return;
+  }
+  if (mode !== "world" && mode !== "asia") return;
+  const ll = invertGlobe(mid.x, mid.y);
+  globe.mul = clamp(pinch.mul * ratio, GLOBE_MIN_MUL, GLOBE_MAX_MUL);
+  globe.targetMul = globe.mul;
+  if (ll) {
+    holdAnchor({ lon: ll[0], lat: ll[1], x: mid.x, y: mid.y });
+    globe.targetLon = globe.lon0;
+    globe.targetLat = globe.lat0;
+  }
   requestDraw();
+}
+
+function onPointerUp(e) {
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) {
+    pinching = false;
+    pinch = null;
+  }
 }
 
 function allLocked() {
@@ -1218,15 +1536,16 @@ function allLocked() {
 
 function buildPhotoGrid() {
   const root = $("card-photos");
-  root.innerHTML = SLOTS.map(([slot, en, zh]) => `
+  root.innerHTML = SLOTS.map(([slot]) => `
     <figure class="photo-card" data-slot="${slot}">
       <div class="mat"><img alt="" /></div>
       <figcaption>
-        <span class="eyebrow"><span>${en}</span> · ${zh}</span>
+        <span class="eyebrow"></span>
         <strong class="nm-en"></strong>
         <em class="nm-zh"></em>
       </figcaption>
     </figure>`).join("");
+  paintPhotoLabels();
 }
 
 function openCards(iso) {
@@ -1261,31 +1580,28 @@ function renderCard() {
   const card = cards[iso];
   document.querySelector(".card-panel").classList.toggle("show-photos", cardIndex === 3);
   $("card-kicker").textContent = `${cardIndex + 1} / 4`;
-  $("card-title").textContent = `${meta.name} · ${meta.zh}`;
+  $("card-title").textContent = line({ en: meta.name, zh: meta.zh });
   const shapeOn = cardIndex <= 1;
   $("card-shape-wrap").hidden = !shapeOn;
   $("card-copy").hidden = cardIndex > 1;
   $("card-flag").hidden = cardIndex !== 2;
   $("card-photos").hidden = cardIndex !== 3;
   $("card-back").disabled = cardIndex === 0;
-  $("card-next").textContent = cardIndex === 3 ? "Close · 关闭" : "Next · 下一张";
+  $("card-next").textContent = line(cardIndex === 3 ? "close" : "next");
   document.querySelectorAll("#card-dots span").forEach((dot, i) => {
     dot.classList.toggle("on", i === cardIndex);
   });
-  if (cardIndex === 0) {
-    $("card-en").textContent = card.blurb.en;
-    $("card-zh").textContent = card.blurb.zh;
-  } else if (cardIndex === 1) {
-    const sentence = borderSentence(iso);
-    $("card-en").textContent = sentence.en;
-    $("card-zh").textContent = sentence.zh;
-  }
+  if (cardIndex === 0) paintCopy(card.blurb);
+  else if (cardIndex === 1) paintCopy(borderSentence(iso));
   if (shapeOn) drawCardShape(iso, cardIndex === 1);
   if (cardIndex === 2) {
     const img = $("flag-img");
     img.src = `assets/flags/${iso.toLowerCase()}.svg`;
     img.alt = `Flag of ${meta.name}`;
-    $("flag-caption").textContent = `Flag of ${meta.name} · ${meta.zh}国旗`;
+    $("flag-caption").textContent = line({
+      en: `Flag of ${meta.name}`,
+      zh: `${meta.zh}国旗`,
+    });
   }
   if (cardIndex === 3) fillPhotos(iso, card);
 }
@@ -1399,9 +1715,12 @@ function fillPhotos(iso, card) {
     const fig = document.querySelector(`.photo-card[data-slot="${slot}"]`);
     const img = fig.querySelector("img");
     const info = card[slot];
-    fig.querySelector(".nm-en").textContent = info.en;
-    fig.querySelector(".nm-zh").textContent = info.zh;
-    img.alt = info.en;
+    const text = pick({ en: info.en, zh: info.zh });
+    fig.querySelector(".nm-en").textContent = text.main;
+    const sub = fig.querySelector(".nm-zh");
+    sub.textContent = text.sub;
+    sub.hidden = !text.sub;
+    img.alt = text.main;
     img.classList.remove("missing");
     img.onload = () => img.classList.remove("missing");
     img.onerror = () => img.classList.add("missing");
@@ -1464,8 +1783,10 @@ function makeRewardSlides() {
 function renderReward() {
   const slide = rewardSlides[rewardIndex];
   if (!slide) return;
-  $("reward-en").textContent = slide.en;
-  $("reward-zh").textContent = slide.zh;
+  const text = pick(slide);
+  $("reward-en").textContent = text.main;
+  $("reward-zh").textContent = text.sub;
+  $("reward-zh").hidden = !text.sub;
   $("reward-back").classList.toggle("large", !!slide.end);
   $("reward-count").textContent = `${rewardIndex + 1} / ${rewardSlides.length}`;
 }
@@ -1498,19 +1819,27 @@ function openAsk(next) {
   $("ask").hidden = false;
   $("ask-input").value = "";
   $("ask-msg").hidden = true;
-  if (next === "start") {
-    $("ask-title").textContent = `${BUILD_LABEL.en} · ${BUILD_LABEL.zh}`;
-    $("ask-help").textContent = `Type any country in ${BUILD_TARGET.en} to begin, in English or Chinese. · 用英文或中文输入任何一个${BUILD_TARGET.zh}国家。`;
-  } else if (next === "name") {
-    $("ask-title").textContent = "Which country? · 哪个国家？";
-    $("ask-help").textContent = "Type its name. Next you will name its capital. · 先写国名，下一步写首都。";
-  } else {
-    const meta = shapeByIso.get(askIso).properties;
-    $("ask-title").textContent = `${meta.name} · ${meta.zh}`;
-    $("ask-help").textContent = "What is its capital? · 它的首都叫什么？";
-  }
+  paintAsk(next);
   requestAnimationFrame(() => $("ask-input").focus());
   requestDraw();
+}
+
+function paintAsk(next = askMode) {
+  if (!next || $("ask").hidden) return;
+  if (next === "start") {
+    $("ask-title").textContent = line({ en: BUILD_LABEL.en, zh: BUILD_LABEL.zh });
+    $("ask-help").textContent = line({
+      en: `Type any country in ${BUILD_TARGET.en} to begin.`,
+      zh: `输入任何一个${BUILD_TARGET.zh}国家。`,
+    });
+  } else if (next === "name") {
+    $("ask-title").textContent = line("whichCountry");
+    $("ask-help").textContent = line("whichHelp");
+  } else if (askIso) {
+    const meta = shapeByIso.get(askIso).properties;
+    $("ask-title").textContent = line({ en: meta.name, zh: meta.zh });
+    $("ask-help").textContent = line("capitalHelp");
+  }
 }
 
 function closeAsk() {
@@ -1531,10 +1860,11 @@ function onAskInput() {
   requestDraw();
 }
 
-function setAskMsg(en, zh) {
+function setAskMsg(row) {
+  const text = typeof row === "string" ? pick(row) : pick(row);
   const el = $("ask-msg");
   el.hidden = false;
-  el.textContent = `${en} ${zh}`;
+  el.textContent = text.sub ? `${text.main} ${text.sub}` : text.main;
 }
 
 function onAskSubmit(e) {
@@ -1542,7 +1872,7 @@ function onAskSubmit(e) {
   const raw = $("ask-input").value;
   if (askMode === "capital") {
     if (!capitalMatches(askIso, raw)) {
-      setAskMsg("That's not the capital. Try again.", "这不是首都，再试一次。");
+      setAskMsg("notCapital");
       return;
     }
     const iso = askIso;
@@ -1552,15 +1882,18 @@ function onAskSubmit(e) {
   }
   const found = lookupCountry(raw);
   if (found.kind === "empty") {
-    setAskMsg("Type a country name.", "请输入一个国家的名字。");
+    setAskMsg("typeCountry");
     return;
   }
   if (found.kind === "unknown") {
-    setAskMsg("I can't find that one. Try the English or Chinese name.", "没找到。试试英文或中文名字。");
+    setAskMsg("notFound");
     return;
   }
   if (found.kind === "outside") {
-    setAskMsg(`That country is not on this ${BUILD_TARGET.en} map.`, `这个国家不在这幅${BUILD_TARGET.zh}地图上。`);
+    setAskMsg({
+      en: `That country is not on this ${BUILD_TARGET.en} map.`,
+      zh: `这个国家不在这幅${BUILD_TARGET.zh}地图上。`,
+    });
     return;
   }
   if (askMode === "start") {
@@ -1568,7 +1901,7 @@ function onAskSubmit(e) {
     return;
   }
   if (pieces.get(found.iso)?.locked) {
-    setAskMsg("That country is already on the map.", "这个国家已经放好了。");
+    setAskMsg("alreadyPlaced");
     return;
   }
   askIso = found.iso;
@@ -1614,7 +1947,9 @@ function lockAll() {
 }
 
 window.__game = {
-  get mode() { return mode; },
+  get globeView() {
+    return { mul: globe.mul, lon: globe.lon0, lat: globe.lat0 };
+  },
   get playKind() { return playKind; },
   get centre() { return centreIso; },
   get guideOpen() { return guideOpen; },

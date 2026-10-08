@@ -199,6 +199,7 @@ button { font: inherit; cursor: pointer; }
   align-items: flex-end;
   gap: 8px;
 }
+#app.mode-puzzle #puzzle-tools { top: 54px; }
 #puzzle-tools button, #skip-wrap, #progress {
   border: 1px solid rgba(255, 255, 255, 0.28);
   background: rgba(8, 16, 24, 0.78);
@@ -243,7 +244,53 @@ button { font: inherit; cursor: pointer; }
   padding: 7px 12px;
   backdrop-filter: blur(6px);
 }
-#back:hover { border-color: #d6b87a; }
+#lang {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 36;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+#lang-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(8, 16, 24, 0.78);
+  color: #f3f7fb;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  backdrop-filter: blur(6px);
+}
+#lang-toggle:hover, #lang-panel { border-color: #d6b87a; }
+#lang-panel {
+  margin-top: 8px;
+  width: min(260px, calc(100vw - 24px));
+  background: #f6f0e4;
+  color: #241c14;
+  border: 1px solid #d6b87a;
+  border-radius: 14px;
+  padding: 12px 12px 6px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+#lang-panel label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+#lang-panel select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  font: inherit;
+  font-weight: 500;
+  padding: 7px 8px;
+  border-radius: 8px;
+  border: 1px solid #c9b79a;
+  background: #fff;
+  color: #241c14;
+}
 #title {
   top: 12px;
   left: 50%;

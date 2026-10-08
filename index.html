@@ -21,32 +21,32 @@
           </svg>
           <div id="labels"></div>
           <div id="handles"></div>
-          <button type="button" id="back" hidden>Back · 返回</button>
+          <button type="button" id="back" hidden>Back</button>
           <div id="title"></div>
           <div id="puzzle-tools" hidden>
             <div id="progress" hidden></div>
-            <button type="button" id="reveal-map" aria-pressed="false">Reveal map · 显示地图</button>
-            <button type="button" id="name-entry" hidden>Enter country name · 输入国名</button>
-            <label id="skip-wrap" hidden><input type="checkbox" id="skip-cards" /> Skip cards · 跳过卡片</label>
+            <button type="button" id="reveal-map" aria-pressed="false">Reveal map</button>
+            <button type="button" id="name-entry" hidden>Enter country name</button>
+            <label id="skip-wrap" hidden><input type="checkbox" id="skip-cards" /> <span id="skip-label">Skip cards</span></label>
           </div>
           <div id="mode-choice" hidden>
-            <p>Choose a game · 选一种玩法</p>
+            <p>Choose a game</p>
             <div class="choice-row">
-              <button type="button" id="choose-neighbours">Neighbours · 邻国拼图</button>
-              <button type="button" id="choose-build">Build Continents · 拼出大洲</button>
+              <button type="button" id="choose-neighbours">Neighbours</button>
+              <button type="button" id="choose-build">Build Continents</button>
             </div>
           </div>
           <p id="hint"></p>
           <div id="island-note" hidden role="status">
             <strong>The remaining countries have no land borders. They are islands! Enter their name and capital to place them.</strong>
-            <span>剩下的国家没有陆地邻国，它们是岛国！输入国名和首都来放置它们。</span>
+            <span hidden>剩下的国家没有陆地邻国，它们是岛国！输入国名和首都来放置它们。</span>
           </div>
           <div id="toast" hidden></div>
         </div>
       </section>
       <aside id="guide" hidden>
         <div class="guide-head">
-          <h2>Example map · 示例地图</h2>
+          <h2 id="guide-title">Example map</h2>
           <button type="button" id="guide-close" aria-label="Close map">×</button>
         </div>
         <div id="guide-svg-wrap"></div>
@@ -78,9 +78,9 @@
         <div id="card-photos" class="photo-grid" hidden></div>
       </div>
       <div class="card-nav">
-        <button type="button" id="card-back" data-back>Back · 上一张</button>
+        <button type="button" id="card-back" data-back>Back</button>
         <div class="dots" id="card-dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-        <button type="button" id="card-next" data-next>Next · 下一张</button>
+        <button type="button" id="card-next" data-next>Next</button>
       </div>
     </div>
   </div>
@@ -90,7 +90,7 @@
       <p class="reward-count" id="reward-count"></p>
       <p class="reward-en" id="reward-en"></p>
       <p class="reward-zh" id="reward-zh"></p>
-      <button type="button" id="reward-back">Back to map · 返回地图</button>
+      <button type="button" id="reward-back">Back to map</button>
     </div>
   </div>
 
@@ -101,10 +101,24 @@
       <input id="ask-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" />
       <p id="ask-msg" hidden></p>
       <div class="ask-actions">
-        <button type="button" id="ask-cancel">Cancel · 取消</button>
-        <button type="submit" id="ask-ok">OK · 确定</button>
+        <button type="button" id="ask-cancel">Cancel</button>
+        <button type="submit" id="ask-ok">OK</button>
       </div>
     </form>
+  </div>
+
+  <div id="lang">
+    <button type="button" id="lang-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="lang-panel">EN</button>
+    <div id="lang-panel" hidden>
+      <label>
+        <span id="lang-main-lab">Main language</span>
+        <select id="lang-main"></select>
+      </label>
+      <label>
+        <span id="lang-sub-lab">Supplementary language</span>
+        <select id="lang-sub"></select>
+      </label>
+    </div>
   </div>
 
   <div id="loading">Loading the map…</div>
