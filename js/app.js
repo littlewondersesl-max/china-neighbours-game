@@ -82,6 +82,8 @@ let centreIso = null;
 let buildStart = null;
 let capitalRoots = new Set();
 let guideOpen = false;
+let cardsMode = false;
+let hoverIso = null;
 let askMode = null;
 let askIso = null;
 let namedFlash = null;
@@ -215,6 +217,12 @@ function bind() {
   $("puzzle-tools").addEventListener("pointerdown", (e) => e.stopPropagation());
   $("mode-choice").addEventListener("pointerdown", (e) => e.stopPropagation());
   $("reveal-map").addEventListener("click", () => setGuideOpen(!guideOpen));
+  $("cards-mode").addEventListener("click", () => {
+    cardsMode = !cardsMode;
+    syncCardsButton();
+    paintHeading();
+  });
+  playfield.addEventListener("pointerleave", () => setHover(null));
   $("guide-close").addEventListener("click", () => setGuideOpen(false));
   $("name-entry").addEventListener("click", () => openAsk("name"));
   $("choose-neighbours").addEventListener("click", chooseNeighbours);
@@ -255,6 +263,12 @@ function onEsc() {
   }
   if (!$("reward").hidden) { closeReward(); return; }
   if (cardsOpen) { closeCards(); return; }
+  if (cardsMode) {
+    cardsMode = false;
+    syncCardsButton();
+    paintHeading();
+    return;
+  }
   if (!$("ask").hidden) closeAsk();
 }
 
@@ -278,9 +292,12 @@ function setMode(next) {
   if (next !== "puzzle") {
     guideOpen = false;
     namedFlash = null;
+    cardsMode = false;
+    setHover(null);
     $("island-note").hidden = true;
   }
   syncGuide();
+  syncCardsButton();
   syncTools();
 }
 
@@ -291,6 +308,12 @@ function syncGuide() {
   const btn = $("reveal-map");
   btn.textContent = line(show ? "hideMap" : "reveal");
   btn.setAttribute("aria-pressed", show ? "true" : "false");
+}
+
+function syncCardsButton() {
+  const btn = $("cards-mode");
+  btn.textContent = line("cards");
+  btn.setAttribute("aria-pressed", cardsMode ? "true" : "false");
 }
 
 function setGuideOpen(open) {
@@ -369,12 +392,14 @@ function paintHeading() {
     const place = pick({ en: BUILD_TARGET.en, zh: BUILD_TARGET.zh });
     const where = place.sub ? `${place.main} · ${place.sub}` : place.main;
     titleEl.innerHTML = `<b>${esc(modeName.main)}</b>${modeName.sub ? `<span>${esc(modeName.sub)}</span>` : ""}<span class="where">${esc(where)}</span>`;
-    hintEl.textContent = buildNeighbours(buildStart).length
-      ? line("buildHint")
-      : line({
-        en: `${meta.name} is an island, so type a name and a capital to place the next country.`,
-        zh: `${meta.zh}是岛国，请输入国名和首都来放置下一个国家。`,
-      });
+    hintEl.textContent = cardsMode
+      ? line("cardsHint")
+      : buildNeighbours(buildStart).length
+        ? line("buildHint")
+        : line({
+          en: `${meta.name} is an island, so type a name and a capital to place the next country.`,
+          zh: `${meta.zh}是岛国，请输入国名和首都来放置下一个国家。`,
+        });
     document.title = modeName.main;
     return;
   }
@@ -384,7 +409,7 @@ function paintHeading() {
       en: `${meta.name}'s land neighbours`,
       zh: `${meta.zh}的陆地邻国`,
     });
-    hintEl.textContent = line("puzzleHint");
+    hintEl.textContent = line(cardsMode ? "cardsHint" : "puzzleHint");
     document.title = `${pick({ en: meta.name, zh: meta.zh }).main} — ${pick("appTitle").main}`;
   }
 }
@@ -420,6 +445,7 @@ function applyLanguage() {
   loadingEl.textContent = pick("loading").main;
   paintHeading();
   syncGuide();
+  syncCardsButton();
   updateProgress();
   paintPhotoLabels();
   refreshTrayNames();
@@ -1079,20 +1105,186 @@ function drawGhosts() {
   ghostsEl.innerHTML = html;
 }
 
+const labelMeasure = document.createElement("canvas").getContext("2d");
+const textWidthCache = new Map();
+const fitCache = new Map();
+
+function textWidth(text, size, weight) {
+  const key = `${weight}|${size}|${text}`;
+  const hit = textWidthCache.get(key);
+  if (hit != null) return hit;
+  labelMeasure.font = `${weight} ${size}px "Avenir Next", "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif`;
+  const w = labelMeasure.measureText(text).width;
+  textWidthCache.set(key, w);
+  return w;
+}
+
+function labelMetrics(text) {
+  const mainW = textWidth(text.main || "", 13, 700);
+  const subW = text.sub ? textWidth(text.sub, 11, 500) : 0;
+  return {
+    w: Math.ceil(Math.max(mainW, subW) * 1.04) + 4,
+    h: text.sub ? 28 : 16,
+  };
+}
+
+function pointInPiece(piece, mesh, sx, sy) {
+  const geo = pxToGeo(sx, sy);
+  const ax = mesh.cx + (geo.gx - piece.cx) / piece.scale;
+  const ay = mesh.cy + (geo.gy - piece.cy) / piece.scale;
+  const ll = proj.inverse(ax, ay);
+  if (!ll || Number.isNaN(ll[0]) || Number.isNaN(ll[1])) return false;
+  return d3.geoContains(mesh.feature, ll);
+}
+
+function labelFits(piece, mesh, text) {
+  const key = `${piece.iso}|${view.kmPerPx.toFixed(2)}|${piece.scale.toFixed(3)}|${text.main}|${text.sub}`;
+  if (fitCache.has(key)) return fitCache.get(key);
+  const box = labelMetrics(text);
+  const bw = mesh.width * piece.scale / view.kmPerPx;
+  const bh = mesh.height * piece.scale / view.kmPerPx;
+  let ok = box.w < bw - 4 && box.h < bh - 4;
+  if (ok) {
+    const anchor = screenOf(piece.cx, piece.cy);
+    const hw = box.w / 2;
+    const hh = box.h / 2;
+    for (const dx of [-hw, 0, hw]) {
+      for (const dy of [-hh, 0, hh]) {
+        if (!pointInPiece(piece, mesh, anchor.x + dx, anchor.y + dy)) ok = false;
+      }
+    }
+  }
+  if (fitCache.size > 500) fitCache.clear();
+  fitCache.set(key, ok);
+  return ok;
+}
+
+function countryText(mesh) {
+  const meta = mesh.feature.properties;
+  return pick({ en: meta.name, zh: meta.zh });
+}
+
+function namedPiece(piece) {
+  return piece.locked || playKind !== "build";
+}
+
+function interiorScreen(piece, mesh) {
+  const spots = [];
+  const label = mesh.feature.properties.label;
+  if (label) spots.push(label);
+  const mid = proj.inverse(mesh.cx, mesh.cy);
+  if (mid) spots.push(mid);
+  for (const ll of spots) {
+    if (!d3.geoContains(mesh.feature, ll)) continue;
+    const xy = proj.forward(ll[0], ll[1]);
+    if (!xy) continue;
+    return screenOf(
+      piece.cx + piece.scale * (xy[0] - mesh.cx),
+      piece.cy + piece.scale * (xy[1] - mesh.cy),
+    );
+  }
+  return screenOf(piece.cx, piece.cy);
+}
+
+function pieceScreenBounds(piece, mesh) {
+  const pts = [
+    screenOf(piece.cx + piece.scale * mesh.relMinX, piece.cy + piece.scale * mesh.relMinY),
+    screenOf(piece.cx + piece.scale * mesh.relMaxX, piece.cy + piece.scale * mesh.relMaxY),
+  ];
+  return {
+    minX: Math.min(pts[0].x, pts[1].x),
+    maxX: Math.max(pts[0].x, pts[1].x),
+    minY: Math.min(pts[0].y, pts[1].y),
+    maxY: Math.max(pts[0].y, pts[1].y),
+  };
+}
+
+function overlapsChrome(x, y, w, h) {
+  const zones = [
+    { x: view.width - 210, y: 0, w: 210, h: 210 },
+    { x: 0, y: 0, w: 280, h: 110 },
+  ];
+  return zones.some((z) => x < z.x + z.w && x + w > z.x && y < z.y + z.h && y + h > z.y);
+}
+
+function leaderMarkup(piece, mesh, text) {
+  const box = labelMetrics(text);
+  const anchor = interiorScreen(piece, mesh);
+  const bounds = pieceScreenBounds(piece, mesh);
+  const gap = 12;
+  const tabW = box.w + 16;
+  const tabH = box.h + 8;
+  const candidates = [
+    { x: bounds.maxX + gap, y: anchor.y - tabH / 2 },
+    { x: bounds.minX - gap - tabW, y: anchor.y - tabH / 2 },
+    { x: anchor.x - tabW / 2, y: bounds.minY - gap - tabH },
+    { x: anchor.x - tabW / 2, y: bounds.maxY + gap },
+  ];
+  let tab = candidates.find((c) => (
+    c.x > 8 && c.y > 8 && c.x + tabW < view.width - 8 && c.y + tabH < view.height - 8
+    && !overlapsChrome(c.x, c.y, tabW, tabH)
+  ));
+  if (!tab) {
+    tab = {
+      x: clamp(candidates[0].x, 8, Math.max(8, view.width - tabW - 8)),
+      y: clamp(candidates[0].y, 8, Math.max(8, view.height - tabH - 8)),
+    };
+  }
+  const left = anchor.x < tab.x;
+  const above = anchor.y < tab.y;
+  const endX = left ? tab.x : tab.x + tabW;
+  const endY = above ? tab.y : tab.y + tabH;
+  const nearerX = Math.abs(anchor.x - endX) < Math.abs(anchor.x - (tab.x + tabW / 2));
+  const tipX = nearerX ? endX : tab.x + tabW / 2;
+  const tipY = nearerX ? tab.y + tabH / 2 : endY;
+  const name = `<b>${esc(text.main)}</b>${text.sub ? `<span>${esc(text.sub)}</span>` : ""}`;
+  return `<svg class="leader-layer" aria-hidden="true"><line x1="${anchor.x.toFixed(1)}" y1="${anchor.y.toFixed(1)}" x2="${tipX.toFixed(1)}" y2="${tipY.toFixed(1)}"/><circle cx="${anchor.x.toFixed(1)}" cy="${anchor.y.toFixed(1)}" r="2.6"/></svg><div class="name-tab" style="left:${tab.x.toFixed(1)}px;top:${tab.y.toFixed(1)}px">${name}</div>`;
+}
+
 function drawLabels(order) {
   let html = "";
   for (const piece of order) {
+    if (!namedPiece(piece)) continue;
     const mesh = meshes.get(piece.iso);
-    const sx = (piece.cx - view.originX) / view.kmPerPx;
-    const sy = view.height - (piece.cy - view.originY) / view.kmPerPx;
-    if (playKind === "build" && !piece.locked) continue;
-    const wpx = mesh.width * piece.scale / view.kmPerPx;
-    if (playKind !== "build" && wpx < 36 && piece.iso !== selected) continue;
-    const meta = mesh.feature.properties;
-    const text = pick({ en: meta.name, zh: meta.zh });
-    html += `<div class="map-label" style="left:${sx}px;top:${sy}px"><b>${esc(text.main)}</b>${text.sub ? `<span>${esc(text.sub)}</span>` : ""}</div>`;
+    if (!mesh) continue;
+    const text = countryText(mesh);
+    if (!labelFits(piece, mesh, text)) continue;
+    const at = screenOf(piece.cx, piece.cy);
+    html += `<div class="map-label" style="left:${at.x}px;top:${at.y}px"><b>${esc(text.main)}</b>${text.sub ? `<span>${esc(text.sub)}</span>` : ""}</div>`;
+  }
+  if (hoverIso && pieces.has(hoverIso) && meshes.has(hoverIso)) {
+    const piece = pieces.get(hoverIso);
+    const mesh = meshes.get(hoverIso);
+    if (namedPiece(piece)) {
+      const text = countryText(mesh);
+      if (!labelFits(piece, mesh, text)) html += leaderMarkup(piece, mesh, text);
+    }
   }
   labelsEl.innerHTML = html;
+}
+
+function setHover(iso) {
+  if (hoverIso === iso) return;
+  hoverIso = iso;
+  requestDraw();
+}
+
+function updateHover(e) {
+  if (mode !== "puzzle" || e.buttons || cardsOpen || busy || pinching) {
+    setHover(null);
+    return;
+  }
+  if (e.target.closest && e.target.closest("button, a, input, select, #puzzle-tools, #mode-choice, #ask, #lang")) {
+    setHover(null);
+    return;
+  }
+  const p = localPoint(e);
+  const iso = hitTest(p.x, p.y);
+  const piece = iso ? pieces.get(iso) : null;
+  if (!piece || !namedPiece(piece)) { setHover(null); return; }
+  const mesh = meshes.get(iso);
+  if (!mesh || labelFits(piece, mesh, countryText(mesh))) { setHover(null); return; }
+  setHover(iso);
 }
 
 function drawHandles() {
@@ -1175,7 +1367,7 @@ function onPlayDown(e) {
   const iso = hitTest(p.x, p.y);
   if (!iso) { startPan(e); return; }
   const piece = pieces.get(iso);
-  if (piece.locked) { openCards(iso); return; }
+  if (piece.locked) { startPlacedGesture(e, iso); return; }
   startMove(e, iso);
 }
 
@@ -1252,6 +1444,32 @@ function onGlobeClick(p) {
     return;
   }
   enterPuzzle(iso);
+}
+
+function startPlacedGesture(e, iso) {
+  setHover(null);
+  const originX = view.originX;
+  const originY = view.originY;
+  const startX = e.clientX;
+  const startY = e.clientY;
+  let moved = false;
+  playfield.classList.add("panning");
+  track(e.pointerId, (ev) => {
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    if (Math.hypot(dx, dy) <= 5) return;
+    moved = true;
+    view.originX = originX - dx * view.kmPerPx;
+    view.originY = originY + dy * view.kmPerPx;
+    requestDraw();
+  }, () => {
+    playfield.classList.remove("panning");
+    if (moved || !cardsMode || !pieces.get(iso)?.locked) return;
+    cardsMode = false;
+    syncCardsButton();
+    paintHeading();
+    openCards(iso);
+  });
 }
 
 function startPan(e) {
@@ -1507,7 +1725,10 @@ function onPointerDown(e) {
 }
 
 function onPointerMove(e) {
-  if (!pointers.has(e.pointerId)) return;
+  if (!pointers.has(e.pointerId)) {
+    updateHover(e);
+    return;
+  }
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (!pinching || pointers.size < 2 || !pinch) return;
   syncViewSize();

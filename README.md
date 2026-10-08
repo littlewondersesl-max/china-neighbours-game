@@ -21,9 +21,9 @@ Open **http://localhost:8765/** in Chrome. The page loads JSON and pictures with
 3. **Language.** A small control at the top right chooses a main language and an optional supplementary language, shown smaller underneath. The default is English with no second language. English and Chinese (Simplified) are included. The choice is remembered in this browser. Country names and capitals are accepted in the languages that are turned on.
 4. **Puzzle.** The centre country stays fixed at its true size. Neighbours start in the tray (one row, or two when there are more than seven). China’s tray is the familiar 7 + 7 order.
 5. Drag a country onto the map. Drag a **corner** to resize. The **%** by the cursor is that piece’s own true size (100% is correct), not a comparison with the centre country.
-6. Near the right size (**±7%**) and the right place (**about 180 km**), it snaps, locks, and a bright line runs along the border it shares. Then a four-card sequence opens.
-7. **Scroll** or a pinch zooms on the cursor. **Drag empty map**, **right-drag**, or **Space+drag** pans. **Reveal map** opens the finished example, and closes again. It stays closed until you ask for it.
-8. Click a locked country to open its cards again. **Esc** closes the cards.
+6. Near the right size (**±7%**) and the right place (**about 180 km**), it snaps, locks, and a bright line runs along the border it shares. The four cards open that first time only. A name is drawn on the country when it fits inside the shape at the current zoom. If it does not fit, the name stays hidden until you hover, which draws a dashed line out to a small name tab. Zooming in and out shows and hides those names again.
+7. **Scroll** or a pinch zooms on the cursor. **Drag the map or a placed country** to pan. Right-drag and Space+drag still pan too. A drag never opens cards. **Reveal map** opens the finished example, and closes again. It stays closed until you ask for it.
+8. **Cards** (with a supplementary language, **Cards · 卡片**) arms one more look. The next click on a placed country opens its cards, and the button turns off. **Esc** or the button again cancels before that click. **Esc** also closes cards that are already open.
 9. When every neighbour is locked and the cards are closed, a short ending plays (about 4–5 seconds a sentence). **Back to map** or **Esc** returns to the finished map. The puzzle is not reset.
 
 ## The four cards

@@ -176,6 +176,37 @@ button { font: inherit; cursor: pointer; }
 .map-label b { display: block; font-size: 13px; }
 .map-label span { display: block; font-size: 11px; color: #d5e4ee; }
 
+.leader-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.leader-layer line {
+  stroke: #f4efe4;
+  stroke-width: 1.5;
+  stroke-dasharray: 3.5 3.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.85));
+}
+.leader-layer circle { fill: #f0e2c4; filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.85)); }
+.name-tab {
+  position: absolute;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(8, 16, 24, 0.92);
+  border: 1px solid rgba(214, 184, 122, 0.9);
+  text-align: center;
+  pointer-events: none;
+  line-height: 1.05;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+.name-tab b { display: block; font-size: 13px; font-weight: 700; }
+.name-tab span { display: block; font-size: 11px; color: #d5e4ee; font-style: normal; }
+
 .handle {
   position: absolute;
   width: 14px;
@@ -209,7 +240,7 @@ button { font: inherit; cursor: pointer; }
   backdrop-filter: blur(6px);
 }
 #puzzle-tools button:hover, #choose-neighbours:hover, #choose-build:hover { border-color: #d6b87a; }
-#reveal-map[aria-pressed="true"] { border-color: #d6b87a; color: #f0e2c4; }
+#reveal-map[aria-pressed="true"], #cards-mode[aria-pressed="true"] { border-color: #d6b87a; color: #f0e2c4; background: #243044; }
 #progress { font-weight: 750; letter-spacing: 0.02em; }
 #skip-wrap { display: flex; gap: 6px; align-items: center; font-size: 13px; cursor: pointer; }
 #skip-wrap input { accent-color: #d6b87a; }
