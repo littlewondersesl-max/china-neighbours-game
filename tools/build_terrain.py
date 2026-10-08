@@ -310,8 +310,9 @@ def colorize(elev_core, hs_core, west, south, east, north, dlon):
         Image.fromarray((hs_core * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(radius=sigma)),
         dtype=np.float32,
     ) / 255.0
-    ratio = np.clip((0.25 + hs_core) / (0.25 + blur), 0.45, 1.9)
-    out = rgb * ratio[..., None]
+    detail = hs_core - blur
+    boost = np.clip(1.0 + detail * 2.8, 0.28, 3.0)
+    out = rgb * boost[..., None]
     snow = np.clip((elev_core - 4800) / 1600, 0, 1) * np.clip((hs_core - blur) * 1.4, 0, 1) * 0.35
     white = np.array([238, 242, 244], np.float32)
     out = out * (1 - snow[..., None]) + white * snow[..., None]

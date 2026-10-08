@@ -1027,7 +1027,7 @@ function draw() {
   view.width = w;
   view.height = h;
   mainGL.resize(w, h);
-  if (terrainLod) terrainLod.update(mainGL, terrainRequest());
+  if (terrainLod) terrainLod.update(mainGL, terrainRequest(), { maxPx: 4096 });
   if (mode === "puzzle" && proj) {
     const order = drawOrder();
     mainGL.drawPieces(order.map((p) => ({

@@ -29,28 +29,32 @@ uniform float uNewer;
 uniform vec4 uBoundA;
 uniform vec4 uBoundB;
 
-vec3 sampleWindow(sampler2D tex, vec4 bound, float mixv) {
-  if (mixv < 0.004 || bound.z < 0.05 || bound.w < 0.05) return vec3(-1.0);
+float windowMask(vec4 bound, float mixv, vec2 uv) {
+  float on = step(0.004, mixv) * step(0.05, bound.z) * step(0.05, bound.w);
+  return on * step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+}
+
+vec2 windowUV(vec4 bound) {
   float d = vLL.x - bound.x;
-  if (d < -0.01) d += 360.0;
-  float x = d / bound.z;
-  float y = (vLL.y - bound.y) / bound.w;
-  if (x < 0.0 || x > 1.0 || y < 0.0 || y > 1.0) return vec3(-1.0);
-  return texture2D(tex, vec2(x, y)).rgb;
+  d += 360.0 * step(d, -0.01);
+  return vec2(d / max(bound.z, 0.0001), (vLL.y - bound.y) / max(bound.w, 0.0001));
 }
 
 vec3 withDetail(vec3 base) {
-  vec3 a = sampleWindow(uDetailA, uBoundA, uMixA);
-  vec3 b = sampleWindow(uDetailB, uBoundB, uMixB);
-  vec3 c = base;
-  if (uNewer < 0.5) {
-    if (b.r >= 0.0) c = mix(c, b, uMixB);
-    if (a.r >= 0.0) c = mix(c, a, uMixA);
-  } else {
-    if (a.r >= 0.0) c = mix(c, a, uMixA);
-    if (b.r >= 0.0) c = mix(c, b, uMixB);
-  }
-  return c;
+  vec2 uvA = windowUV(uBoundA);
+  vec2 uvB = windowUV(uBoundB);
+  float mA = windowMask(uBoundA, uMixA, uvA);
+  float mB = windowMask(uBoundB, uMixB, uvB);
+  vec3 colA = texture2D(uDetailA, clamp(uvA, 0.0, 1.0)).rgb;
+  vec3 colB = texture2D(uDetailB, clamp(uvB, 0.0, 1.0)).rgb;
+  float aNew = step(uNewer, 0.5);
+  float wA = uMixA * mA;
+  float wB = uMixB * mB;
+  vec3 colNew = mix(colB, colA, aNew);
+  vec3 colOld = mix(colA, colB, aNew);
+  float wNew = mix(wB, wA, aNew);
+  float wOld = mix(wA, wB, aNew);
+  return mix(mix(base, colOld, wOld), colNew, wNew);
 }
 `;
 
@@ -197,6 +201,11 @@ export function createView(canvas, options = {}) {
   };
   Object.assign(pieceLoc, detailLocations(gl, pieceProg));
   Object.assign(globeLoc, detailLocations(gl, globeProg));
+  for (const loc of [pieceLoc, globeLoc]) {
+    for (const name of ["uDetailA", "uDetailB", "uMixA", "uMixB", "uNewer", "uBoundA", "uBoundB"]) {
+      if (loc[name] == null) throw new Error("Missing terrain uniform " + name);
+    }
+  }
 
   const sphere = buildSphere();
   const sphereVbo = gl.createBuffer();

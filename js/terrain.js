@@ -243,10 +243,9 @@ export function createTerrain(relief, onReady) {
 
   function show(state, composite, snap) {
     if (!composite) return;
-    if (state.a.key === composite.key && state.newer === 0 && state.a.mix > 0.98) return;
-    if (state.b.key === composite.key && state.newer === 1 && state.b.mix > 0.98) return;
-    const slotName = state.a.mix <= state.b.mix ? "a" : "b";
+    let slotName = state.a.key === composite.key ? "a" : state.b.key === composite.key ? "b" : (state.a.mix <= state.b.mix ? "a" : "b");
     const slot = state[slotName];
+    const fresh = slot.key !== composite.key || slot.token !== composite.token;
     slot.key = composite.key;
     slot.canvas = composite.canvas;
     slot.token = composite.token;
@@ -255,6 +254,7 @@ export function createTerrain(relief, onReady) {
     slot.lonSpan = composite.lonSpan;
     slot.latSpan = composite.latSpan;
     slot.target = 1;
+    if (fresh && !snap) slot.mix = 0;
     state.newer = slotName === "a" ? 0 : 1;
     if (snap) {
       slot.mix = 1;
