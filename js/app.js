@@ -65,6 +65,7 @@ const labelsEl = $("labels");
 const handlesEl = $("handles");
 const linesEl = $("lines");
 const ghostsEl = $("ghosts");
+const coastsEl = $("coasts");
 const weldEl = $("weld");
 const graticuleEl = $("graticule");
 const titleEl = $("title");
@@ -120,6 +121,11 @@ let worldFeatures = [];
 let shapeByIso = new Map();
 let borders = null;
 let rivers = null;
+let coastLonLat = [];
+let coastKm = [];
+let shakeWatch = null;
+let splashStart = 0;
+let splashFrame = 0;
 let cards = null;
 let mainGL = null;
 let cardGL = null;
@@ -162,16 +168,18 @@ async function init() {
     mainGL = createView($("gl"));
     cardGL = createView($("card-gl"));
     thumbGL = createView(document.createElement("canvas"), { preserve: true });
-    const [world, shapes, borderData, riverData, cardData, relief] = await Promise.all([
+    const [world, shapes, borderData, riverData, cardData, coastData, relief] = await Promise.all([
       loadJSON("data/world.json"),
       loadJSON("data/shapes.json"),
       loadJSON("data/borders.json"),
       loadJSON("data/rivers.json"),
       loadJSON("data/cards.json"),
+      loadJSON("data/coast.json"),
       loadImage("assets/relief.jpg"),
     ]);
     borders = borderData;
     rivers = riverData;
+    coastLonLat = coastData;
     cards = cardData;
     reliefImage = relief;
     worldFeatures = world.features;
@@ -295,6 +303,7 @@ function setMode(next) {
     cardsMode = false;
     setHover(null);
     $("island-note").hidden = true;
+    stopCoastSplash();
   }
   syncGuide();
   syncCardsButton();
@@ -373,6 +382,10 @@ function paintIslandNote() {
   span.hidden = !text.sub;
 }
 
+function withShake(row) {
+  return `${line(row)} · ${line("shakeHint")}`;
+}
+
 function paintHeading() {
   if (mode === "world") {
     titleEl.innerHTML = htmlStack("appTitle");
@@ -392,11 +405,11 @@ function paintHeading() {
     const place = pick({ en: BUILD_TARGET.en, zh: BUILD_TARGET.zh });
     const where = place.sub ? `${place.main} · ${place.sub}` : place.main;
     titleEl.innerHTML = `<b>${esc(modeName.main)}</b>${modeName.sub ? `<span>${esc(modeName.sub)}</span>` : ""}<span class="where">${esc(where)}</span>`;
-    hintEl.textContent = cardsMode
-      ? line("cardsHint")
+    hintEl.textContent = withShake(cardsMode
+      ? "cardsHint"
       : buildNeighbours(buildStart).length
-        ? line("buildHint")
-        : line({
+        ? "buildHint"
+        : {
           en: `${meta.name} is an island, so type a name and a capital to place the next country.`,
           zh: `${meta.zh}是岛国，请输入国名和首都来放置下一个国家。`,
         });
@@ -409,7 +422,7 @@ function paintHeading() {
       en: `${meta.name}'s land neighbours`,
       zh: `${meta.zh}的陆地邻国`,
     });
-    hintEl.textContent = line(cardsMode ? "cardsHint" : "puzzleHint");
+    hintEl.textContent = withShake(cardsMode ? "cardsHint" : "puzzleHint");
     document.title = `${pick({ en: meta.name, zh: meta.zh }).main} — ${pick("appTitle").main}`;
   }
 }
@@ -778,6 +791,7 @@ function enterPuzzle(iso) {
     }
     if (projected.length) seamKm.set(key, projected);
   }
+  projectCoasts();
   pieces = new Map();
   const centreMesh = meshes.get(iso);
   pieces.set(iso, { iso, cx: centreMesh.cx, cy: centreMesh.cy, scale: 1, locked: true, fixed: true });
@@ -832,6 +846,7 @@ function enterBuild(iso) {
     }
     if (projected.length) seamKm.set(key, projected);
   }
+  projectCoasts();
   pieces = new Map();
   const startMesh = meshes.get(iso);
   pieces.set(iso, { iso, cx: startMesh.cx, cy: startMesh.cy, scale: 1, locked: true, fixed: true });
@@ -1022,6 +1037,7 @@ function draw() {
     labelsEl.innerHTML = "";
     handlesEl.innerHTML = "";
     graticuleEl.innerHTML = "";
+    stopCoastSplash();
   }
 }
 
@@ -1356,6 +1372,201 @@ function globePick(px, py) {
   return null;
 }
 
+function projectCoasts() {
+  coastKm = [];
+  if (!proj || !coastLonLat) return;
+  for (const line of coastLonLat) {
+    let out = [];
+    let prev = null;
+    const flush = () => {
+      if (out.length >= 2) coastKm.push(out);
+      out = [];
+      prev = null;
+    };
+    for (const [lon, lat] of line) {
+      const xy = proj.forward(lon, lat);
+      if (!xy) { flush(); continue; }
+      if (prev && Math.hypot(xy[0] - prev[0], xy[1] - prev[1]) > 900) flush();
+      out.push(xy);
+      prev = xy;
+    }
+    flush();
+  }
+}
+
+function shook(samples) {
+  if (samples.length < 5) return false;
+  const span = samples[samples.length - 1].t - samples[0].t;
+  if (span < 120 || span > 620) return false;
+  let reversals = 0;
+  let strokeStart = samples[0];
+  let strokeDir = null;
+  let path = 0;
+  let last = samples[0];
+  for (let i = 1; i < samples.length; i++) {
+    const p = samples[i];
+    const dx = p.x - last.x;
+    const dy = p.y - last.y;
+    const step = Math.hypot(dx, dy);
+    if (step < 2.5) continue;
+    path += step;
+    const ux = dx / step;
+    const uy = dy / step;
+    if (!strokeDir) {
+      strokeDir = { x: ux, y: uy };
+      last = p;
+      continue;
+    }
+    const dot = strokeDir.x * ux + strokeDir.y * uy;
+    if (dot < -0.5) {
+      const leg = Math.hypot(last.x - strokeStart.x, last.y - strokeStart.y);
+      if (leg >= 18 && leg <= 260) {
+        reversals += 1;
+        strokeStart = last;
+        strokeDir = { x: ux, y: uy };
+      } else if (leg > 260) {
+        reversals = 0;
+        strokeStart = last;
+        strokeDir = { x: ux, y: uy };
+        path = step;
+      }
+    } else {
+      const stroke = Math.hypot(p.x - strokeStart.x, p.y - strokeStart.y);
+      if (stroke > 260) {
+        reversals = 0;
+        strokeStart = p;
+        strokeDir = { x: ux, y: uy };
+        path = 0;
+      } else if (dot > 0.4) {
+        strokeDir = { x: ux, y: uy };
+      }
+    }
+    last = p;
+  }
+  const net = Math.hypot(
+    samples[samples.length - 1].x - samples[0].x,
+    samples[samples.length - 1].y - samples[0].y,
+  );
+  return reversals >= 3 && path >= 72 && net <= path * 0.5;
+}
+
+function beginShake(e) {
+  if (mode !== "puzzle" || pinching) return;
+  shakeWatch = {
+    fired: false,
+    samples: [{ t: performance.now(), x: e.clientX, y: e.clientY }],
+  };
+}
+
+function sampleShake(e) {
+  if (!shakeWatch || shakeWatch.fired || pinching || pointers.size >= 2) return;
+  const now = performance.now();
+  const samples = shakeWatch.samples;
+  samples.push({ t: now, x: e.clientX, y: e.clientY });
+  const cutoff = now - 600;
+  while (samples.length > 2 && samples[0].t < cutoff) samples.shift();
+  if (shook(samples)) {
+    shakeWatch.fired = true;
+    startCoastSplash();
+  }
+}
+
+function endShake() {
+  shakeWatch = null;
+}
+
+function stopCoastSplash() {
+  splashStart = 0;
+  if (splashFrame) {
+    cancelAnimationFrame(splashFrame);
+    splashFrame = 0;
+  }
+  coastsEl.innerHTML = "";
+  coastsEl.removeAttribute("opacity");
+}
+
+function startCoastSplash() {
+  if (mode !== "puzzle" || !coastKm.length) return;
+  splashStart = performance.now();
+  if (splashFrame) return;
+  const step = (now) => {
+    const age = now - splashStart;
+    if (mode !== "puzzle" || !splashStart || age >= 1850) {
+      splashFrame = 0;
+      splashStart = 0;
+      coastsEl.innerHTML = "";
+      coastsEl.removeAttribute("opacity");
+      return;
+    }
+    paintCoasts(now);
+    splashFrame = requestAnimationFrame(step);
+  };
+  splashFrame = requestAnimationFrame(step);
+}
+
+function paintCoasts(now) {
+  const age = now - splashStart;
+  const u = age / 1800;
+  if (u <= 0 || u >= 1) return;
+  const env = Math.sin(Math.PI * u);
+  const shimmer = 0.84 + 0.16 * Math.sin(age / 110);
+  coastsEl.setAttribute("opacity", (env * shimmer).toFixed(3));
+  const k = view.kmPerPx;
+  const pad = 48 * k;
+  const minX = view.originX - pad;
+  const maxX = view.originX + view.width * k + pad;
+  const minY = view.originY - pad;
+  const maxY = view.originY + view.height * k + pad;
+  let d = "";
+  const drops = [];
+  let pen = false;
+  let last = null;
+  let carry = 0;
+  const minPx = 2.2;
+  for (const line of coastKm) {
+    pen = false;
+    last = null;
+    for (const [x, y] of line) {
+      if (x < minX || x > maxX || y < minY || y > maxY) {
+        pen = false;
+        last = null;
+        continue;
+      }
+      const sx = (x - view.originX) / k;
+      const sy = view.height - (y - view.originY) / k;
+      if (last) {
+        const dist = Math.hypot(sx - last[0], sy - last[1]);
+        if (pen && dist < minPx) continue;
+        carry += dist;
+        if (carry > 52 && drops.length < 72) {
+          carry = 0;
+          drops.push([sx, sy, drops.length]);
+        }
+      }
+      d += (pen ? "L" : "M") + sx.toFixed(1) + " " + sy.toFixed(1) + " ";
+      pen = true;
+      last = [sx, sy];
+    }
+  }
+  if (!d) {
+    coastsEl.innerHTML = "";
+    return;
+  }
+  const ripple = (age / 26) % 90;
+  let dots = "";
+  for (const [x, y, i] of drops) {
+    const pulse = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(age / 150 + i * 0.85));
+    const r = 1.4 + pulse * 2.3;
+    dots += `<circle class="coast-ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.15).toFixed(1)}"/>`;
+    dots += `<circle class="coast-drop" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>`;
+  }
+  coastsEl.innerHTML =
+    `<path class="coast-wash" d="${d}"/>` +
+    `<path class="coast-line" d="${d}"/>` +
+    `<path class="coast-ripple" d="${d}" stroke-dashoffset="${(-ripple).toFixed(1)}"/>` +
+    dots;
+}
+
 function onPlayDown(e) {
   if (e.target.closest("button") || e.target.closest("#toast") || e.target.closest(".handle")) return;
   if (e.target.closest("#puzzle-tools") || e.target.closest("#mode-choice") || e.target.closest("#ask")) return;
@@ -1453,8 +1664,10 @@ function startPlacedGesture(e, iso) {
   const startX = e.clientX;
   const startY = e.clientY;
   let moved = false;
+  beginShake(e);
   playfield.classList.add("panning");
   track(e.pointerId, (ev) => {
+    sampleShake(ev);
     const dx = ev.clientX - startX;
     const dy = ev.clientY - startY;
     if (Math.hypot(dx, dy) <= 5) return;
@@ -1463,6 +1676,7 @@ function startPlacedGesture(e, iso) {
     view.originY = originY + dy * view.kmPerPx;
     requestDraw();
   }, () => {
+    endShake();
     playfield.classList.remove("panning");
     if (moved || !cardsMode || !pieces.get(iso)?.locked) return;
     cardsMode = false;
@@ -1475,14 +1689,19 @@ function startPlacedGesture(e, iso) {
 function startPan(e) {
   const originX = view.originX, originY = view.originY;
   const startX = e.clientX, startY = e.clientY;
+  beginShake(e);
   playfield.classList.add("panning");
   track(e.pointerId, (ev) => {
+    sampleShake(ev);
     const dx = ev.clientX - startX;
     const dy = ev.clientY - startY;
     view.originX = originX - dx * view.kmPerPx;
     view.originY = originY + dy * view.kmPerPx;
     requestDraw();
-  }, () => playfield.classList.remove("panning"));
+  }, () => {
+    endShake();
+    playfield.classList.remove("panning");
+  });
 }
 
 function startTrayDrag(e, iso) {
@@ -1532,15 +1751,20 @@ function startMove(e, iso) {
   const geo = pxToGeo(p.x, p.y);
   const offGx = piece.cx - geo.gx;
   const offGy = piece.cy - geo.gy;
+  beginShake(e);
   showPct(piece, e.clientX, e.clientY);
   track(e.pointerId, (ev) => {
+    sampleShake(ev);
     const lp = localPoint(ev);
     const g = pxToGeo(lp.x, lp.y);
     piece.cx = g.gx + offGx;
     piece.cy = g.gy + offGy;
     showPct(piece, ev.clientX, ev.clientY);
     requestDraw();
-  }, () => endGesture(piece, e));
+  }, () => {
+    endShake();
+    endGesture(piece, e);
+  });
 }
 
 function startResize(e, iso, corner) {
@@ -1709,6 +1933,7 @@ function onPointerDown(e) {
   if (pointers.size >= 2) {
     pinching = true;
     didPinch = true;
+    endShake();
     globeAnchor = null;
     globe.targetMul = globe.mul;
     globe.targetLon = globe.lon0;
@@ -2258,6 +2483,11 @@ window.__game = {
   showReward: () => { if (centreIso) { rewarded = true; showReward(); } },
   closeReward,
   hitTest,
+  splash() {
+    if (mode !== "puzzle") return false;
+    startCoastSplash();
+    return splashStart > 0;
+  },
   pick(x, y) {
     const f = globePick(x, y);
     if (!f) return null;

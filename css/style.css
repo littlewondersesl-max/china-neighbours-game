@@ -139,6 +139,13 @@ button { font: inherit; cursor: pointer; }
 .outline.centre { stroke: rgba(255, 226, 170, 0.95); stroke-width: 1.45; }
 .outline.locked { stroke: rgba(232, 255, 246, 0.92); }
 .river { fill: none; stroke: rgba(170, 214, 255, 0.9); stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
+#coasts { pointer-events: none; }
+.coast-wash, .coast-line, .coast-ripple { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.coast-wash { stroke: rgba(176, 220, 236, 0.45); stroke-width: 10; }
+.coast-line { stroke: rgba(248, 253, 255, 0.9); stroke-width: 1.55; }
+.coast-ripple { stroke: rgba(255, 255, 255, 0.72); stroke-width: 2.1; stroke-dasharray: 2.2 9; }
+.coast-drop { fill: rgba(255, 255, 255, 0.88); }
+.coast-ring { fill: none; stroke: rgba(214, 242, 255, 0.62); stroke-width: 1.15; }
 .country-stroke { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 0.8; }
 .country-stroke.asia { stroke: rgba(255, 236, 196, 0.9); stroke-width: 1.05; }
 .country-stroke.dim { stroke: rgba(255, 255, 255, 0.18); }

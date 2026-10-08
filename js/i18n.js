@@ -35,6 +35,7 @@ const UI = {
   asiaZoom: { en: "Scroll or pinch to zoom", zh: "滚轮或双指缩放" },
   asiaHint: { en: "Click a country to start its neighbour puzzle · scroll or pinch to zoom", zh: "点击国家，拼它的邻国 · 滚轮或双指缩放" },
   puzzleHint: { en: "Scroll or pinch to zoom · drag a corner to resize · drag the map or a placed country to pan", zh: "滚轮或双指缩放 · 拖角落改大小 · 拖地图或已放好的国家来平移" },
+  shakeHint: { en: "Shake a piece to see the coasts", zh: "摇一摇看海岸线" },
   buildHint: { en: "A shape locks only when it touches the chain · or enter a name and its capital", zh: "形状要连上已放好的国家，或输入国名和首都" },
   placed: { en: "{n} / {total} placed", zh: "已放好 {n} / {total}" },
   comingSoon: { en: "Coming soon — {name}", zh: "即将推出 · {name}" },
