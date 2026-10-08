@@ -141,11 +141,11 @@ button { font: inherit; cursor: pointer; }
 .river { fill: none; stroke: rgba(170, 214, 255, 0.9); stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
 #coasts { pointer-events: none; }
 .coast-wash, .coast-line, .coast-ripple { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.coast-wash { stroke: rgba(176, 220, 236, 0.45); stroke-width: 10; }
-.coast-line { stroke: rgba(248, 253, 255, 0.9); stroke-width: 1.55; }
-.coast-ripple { stroke: rgba(255, 255, 255, 0.72); stroke-width: 2.1; stroke-dasharray: 2.2 9; }
-.coast-drop { fill: rgba(255, 255, 255, 0.88); }
-.coast-ring { fill: none; stroke: rgba(214, 242, 255, 0.62); stroke-width: 1.15; }
+.coast-wash { stroke: rgba(176, 220, 236, 0.34); stroke-width: 7; }
+.coast-line { stroke: rgba(244, 252, 255, 0.78); stroke-width: 1.25; }
+.coast-ripple { stroke: rgba(255, 255, 255, 0.55); stroke-width: 1.5; stroke-dasharray: 1.6 11; }
+.coast-drop { fill: rgba(255, 255, 255, 0.72); }
+.coast-ring { fill: none; stroke: rgba(214, 242, 255, 0.4); stroke-width: 0.9; }
 .country-stroke { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 0.8; }
 .country-stroke.asia { stroke: rgba(255, 236, 196, 0.9); stroke-width: 1.05; }
 .country-stroke.dim { stroke: rgba(255, 255, 255, 0.18); }

@@ -126,6 +126,7 @@ let coastKm = [];
 let shakeWatch = null;
 let splashStart = 0;
 let splashFrame = 0;
+let splashTimer = 0;
 let cards = null;
 let mainGL = null;
 let cardGL = null;
@@ -297,6 +298,7 @@ function setMode(next) {
   $("mode-choice").hidden = next !== "asia";
   $("puzzle-tools").hidden = next !== "puzzle";
   toastEl.hidden = true;
+  stopCoastSplash();
   if (next !== "puzzle") {
     guideOpen = false;
     namedFlash = null;
@@ -1037,7 +1039,6 @@ function draw() {
     labelsEl.innerHTML = "";
     handlesEl.innerHTML = "";
     graticuleEl.innerHTML = "";
-    stopCoastSplash();
   }
 }
 
@@ -1481,6 +1482,8 @@ function stopCoastSplash() {
     cancelAnimationFrame(splashFrame);
     splashFrame = 0;
   }
+  clearTimeout(splashTimer);
+  splashTimer = 0;
   coastsEl.innerHTML = "";
   coastsEl.removeAttribute("opacity");
 }
@@ -1488,6 +1491,10 @@ function stopCoastSplash() {
 function startCoastSplash() {
   if (mode !== "puzzle" || !coastKm.length) return;
   splashStart = performance.now();
+  clearTimeout(splashTimer);
+  splashTimer = setTimeout(() => {
+    if (!splashStart || performance.now() - splashStart >= 1750) stopCoastSplash();
+  }, 1900);
   if (splashFrame) return;
   const step = (now) => {
     const age = now - splashStart;
@@ -1538,7 +1545,7 @@ function paintCoasts(now) {
         const dist = Math.hypot(sx - last[0], sy - last[1]);
         if (pen && dist < minPx) continue;
         carry += dist;
-        if (carry > 52 && drops.length < 72) {
+        if (carry > 78 && drops.length < 42) {
           carry = 0;
           drops.push([sx, sy, drops.length]);
         }
@@ -1556,7 +1563,7 @@ function paintCoasts(now) {
   let dots = "";
   for (const [x, y, i] of drops) {
     const pulse = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(age / 150 + i * 0.85));
-    const r = 1.4 + pulse * 2.3;
+    const r = 1.05 + pulse * 1.35;
     dots += `<circle class="coast-ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.15).toFixed(1)}"/>`;
     dots += `<circle class="coast-drop" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>`;
   }
@@ -1928,6 +1935,13 @@ function holdAnchor(anchor) {
 
 function onPointerDown(e) {
   if (e.target.closest("button, a, input, select, label, #lang")) return;
+  if (e.isPrimary) {
+    for (const id of pointers.keys()) {
+      if (id !== e.pointerId) pointers.delete(id);
+    }
+    pinching = false;
+    pinch = null;
+  }
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   try { playfield.setPointerCapture(e.pointerId); } catch { /* synthetic events have no active pointer */ }
   if (pointers.size >= 2) {
