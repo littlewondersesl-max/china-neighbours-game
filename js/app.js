@@ -18,6 +18,40 @@ const SLOTS = [
   ["landmark", "Famous place", "著名地点"],
   ["dish", "Popular dish", "美食"],
 ];
+const ASIA_LON = 95;
+const ASIA_LAT = 35;
+const ALIASES = {
+  ARE: ["UAE", "U.A.E.", "Emirates", "the Emirates", "阿拉伯联合酋长国"],
+  BGD: ["孟加拉"],
+  BRN: ["Brunei Darussalam"],
+  CHN: ["PRC", "People's Republic of China", "中华人民共和国"],
+  IDN: ["印尼"],
+  KAZ: ["哈萨克"],
+  KGZ: ["Kirghizia", "吉尔吉斯"],
+  KHM: ["Kampuchea"],
+  KOR: ["Korea", "South Korea", "Republic of Korea", "ROK", "南韩", "大韩民国"],
+  LAO: ["Lao"],
+  MMR: ["Burma"],
+  MNG: ["蒙古"],
+  PRK: ["North Korea", "DPRK", "Democratic People's Republic of Korea", "北韩"],
+  PSX: ["State of Palestine"],
+  RUS: ["Russian Federation", "俄国"],
+  SAU: ["Saudi", "沙特"],
+  TJK: ["塔吉克"],
+  TKM: ["土库曼"],
+  TLS: ["East Timor", "Timor Leste"],
+  TUR: ["Turkiye", "Türkiye"],
+  UZB: ["乌兹别克"],
+  VNM: ["Viet Nam"],
+};
+const EXTRA_CAPITALS = {
+  JPN: ["Tokyo", "东京", "東京都"],
+  LKA: ["Sri Jayewardenepura Kotte", "Sri Jayawardenepura Kotte", "Kotte", "Colombo", "科伦坡", "斯里贾亚瓦德纳普拉科特"],
+  PHL: ["Manila", "马尼拉"],
+  SGP: ["Singapore", "新加坡"],
+  CYP: ["Nicosia", "Lefkosia", "尼科西亚"],
+  BHR: ["Manama", "麦纳麦"],
+};
 
 const $ = (id) => document.getElementById(id);
 const playfield = $("playfield");
@@ -39,7 +73,16 @@ const loadingEl = $("loading");
 const view = { kmPerPx: 12, originX: 0, originY: 0, width: 800, height: 600 };
 const globe = { lon0: 70, lat0: 18, mul: 0.42, targetLon: 70, targetLat: 18, targetMul: 0.42 };
 let mode = "world";
+let playKind = "neighbours";
 let centreIso = null;
+let buildStart = null;
+let capitalRoots = new Set();
+let guideOpen = false;
+let askMode = null;
+let askIso = null;
+let asiaIsos = [];
+let asiaSet = new Set();
+let nameIndex = new Map();
 let proj = null;
 let meshes = new Map();
 let seamKm = new Map();
@@ -120,6 +163,7 @@ async function init() {
     worldFeatures = world.features;
     for (const f of worldFeatures) f._b = boundsOfFeature(f);
     for (const f of shapes.features) shapeByIso.set(f.properties.iso, f);
+    indexNames();
     mainGL.setRelief(relief);
     cardGL.setRelief(relief);
     thumbGL.setRelief(relief);
@@ -149,6 +193,15 @@ function bind() {
   window.addEventListener("resize", requestDraw);
   new ResizeObserver(requestDraw).observe(playfield);
   toastEl.addEventListener("click", () => { toastEl.hidden = true; });
+  $("puzzle-tools").addEventListener("pointerdown", (e) => e.stopPropagation());
+  $("mode-choice").addEventListener("pointerdown", (e) => e.stopPropagation());
+  $("reveal-map").addEventListener("click", () => setGuideOpen(!guideOpen));
+  $("guide-close").addEventListener("click", () => setGuideOpen(false));
+  $("name-entry").addEventListener("click", () => openAsk("name"));
+  $("choose-neighbours").addEventListener("click", chooseNeighbours);
+  $("choose-build").addEventListener("click", () => openAsk("start"));
+  $("ask-form").addEventListener("submit", onAskSubmit);
+  $("ask-cancel").addEventListener("click", closeAsk);
   $("card-modal").addEventListener("click", onCardClick);
   $("reward-back").addEventListener("click", closeReward);
   $("reward").addEventListener("click", (e) => {
@@ -160,7 +213,8 @@ function bind() {
 
 function onEsc() {
   if (!$("reward").hidden) { closeReward(); return; }
-  if (cardsOpen) closeCards();
+  if (cardsOpen) { closeCards(); return; }
+  if (!$("ask").hidden) closeAsk();
 }
 
 function showToast(en, zh) {
@@ -172,16 +226,48 @@ function showToast(en, zh) {
 
 function setMode(next) {
   mode = next;
-  appEl.classList.remove("mode-world", "mode-asia", "mode-puzzle", "one-tray");
+  appEl.classList.remove("mode-world", "mode-asia", "mode-puzzle", "mode-build", "one-tray", "guide-open");
   appEl.classList.add("mode-" + next);
+  if (next === "puzzle" && playKind === "build") appEl.classList.add("mode-build");
   backBtn.hidden = next === "world";
-  $("guide").hidden = next !== "puzzle";
+  $("mode-choice").hidden = next !== "asia";
+  $("puzzle-tools").hidden = next !== "puzzle";
   toastEl.hidden = true;
+  if (next !== "puzzle") guideOpen = false;
+  syncGuide();
+  syncTools();
+}
+
+function syncGuide() {
+  const show = mode === "puzzle" && guideOpen;
+  appEl.classList.toggle("guide-open", show);
+  $("guide").hidden = !show;
+  const btn = $("reveal-map");
+  btn.textContent = show ? "Hide map · 收起地图" : "Reveal map · 显示地图";
+  btn.setAttribute("aria-pressed", show ? "true" : "false");
+}
+
+function setGuideOpen(open) {
+  if (mode !== "puzzle") return;
+  guideOpen = !!open;
+  syncGuide();
+  requestDraw();
+}
+
+function syncTools() {
+  const build = mode === "puzzle" && playKind === "build";
+  $("name-entry").hidden = !build;
+  $("skip-wrap").hidden = !build;
+  if (!build) $("progress").hidden = true;
 }
 
 function enterWorld() {
   closeCards();
   closeReward();
+  closeAsk();
+  playKind = "neighbours";
+  buildStart = null;
+  capitalRoots = new Set();
   setMode("world");
   centreIso = null;
   pieces.clear();
@@ -199,6 +285,10 @@ function enterWorld() {
 function enterAsia() {
   closeCards();
   closeReward();
+  closeAsk();
+  playKind = "neighbours";
+  buildStart = null;
+  capitalRoots = new Set();
   setMode("asia");
   centreIso = null;
   pieces.clear();
@@ -208,11 +298,16 @@ function enterAsia() {
   globe.targetLon = 90;
   globe.targetLat = 28;
   globe.targetMul = 0.92;
-  titleEl.innerHTML = `<b>Asia</b><span>亚洲 · 点击一个国家</span>`;
-  hintEl.textContent = "Click a country to start its puzzle · 点击国家开始拼图";
+  titleEl.innerHTML = `<b>Asia</b><span>亚洲</span>`;
+  hintEl.textContent = "";
   document.title = "Asia — Land Neighbours";
   animateGlobe();
   requestDraw();
+}
+
+function chooseNeighbours() {
+  if (mode !== "asia") enterAsia();
+  hintEl.textContent = "Click a country to start its neighbour puzzle · 点击国家，拼它的邻国";
 }
 
 function back() {
@@ -238,6 +333,127 @@ function animateGlobe() {
   requestAnimationFrame(step);
 }
 
+function normName(raw) {
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/&/g, "and")
+    .replace(/['’".]/g, "")
+    .replace(/[^a-z0-9\u4e00-\u9fff]+/gi, "");
+}
+
+function indexNames() {
+  asiaIsos = [];
+  asiaSet = new Set();
+  nameIndex = new Map();
+  for (const [iso, feature] of shapeByIso) {
+    if (feature.properties.continent === "Asia") {
+      asiaIsos.push(iso);
+      asiaSet.add(iso);
+    }
+    addName(feature.properties.name, iso);
+    addName(feature.properties.zh, iso);
+  }
+  for (const [iso, list] of Object.entries(ALIASES)) {
+    if (!shapeByIso.has(iso)) continue;
+    for (const alias of list) addName(alias, iso);
+  }
+  asiaIsos.sort();
+}
+
+function addName(raw, iso) {
+  const key = normName(raw);
+  if (!key || nameIndex.has(key)) return;
+  nameIndex.set(key, iso);
+}
+
+function lookupCountry(raw) {
+  const key = normName(raw);
+  if (!key) return { kind: "empty" };
+  const iso = nameIndex.get(key);
+  if (!iso) return { kind: "unknown" };
+  const meta = shapeByIso.get(iso).properties;
+  if (!asiaSet.has(iso)) return { kind: "not-asia", iso, meta };
+  return { kind: "asia", iso, meta };
+}
+
+function capitalAnswers(iso) {
+  const list = [];
+  const card = cards[iso];
+  if (card?.capital) list.push(card.capital.en, card.capital.zh);
+  if (EXTRA_CAPITALS[iso]) list.push(...EXTRA_CAPITALS[iso]);
+  return list;
+}
+
+function capitalMatches(iso, raw) {
+  const key = normName(raw);
+  if (!key) return false;
+  return capitalAnswers(iso).some((name) => normName(name) === key);
+}
+
+function asiaNeighbours(iso) {
+  return (borders.neighbours[iso] || []).filter((id) => asiaSet.has(id));
+}
+
+function anchorSet() {
+  const locked = new Set();
+  for (const [iso, piece] of pieces) if (piece.locked) locked.add(iso);
+  const seen = new Set();
+  const queue = [];
+  const seed = (iso) => {
+    if (!iso || !locked.has(iso) || seen.has(iso)) return;
+    seen.add(iso);
+    queue.push(iso);
+  };
+  seed(buildStart);
+  for (const iso of capitalRoots) seed(iso);
+  while (queue.length) {
+    const cur = queue.pop();
+    for (const next of asiaNeighbours(cur)) seed(next);
+  }
+  return seen;
+}
+
+function touchesChain(iso) {
+  const anchors = anchorSet();
+  return asiaNeighbours(iso).some((id) => anchors.has(id));
+}
+
+function placedCount() {
+  let n = 0;
+  for (const iso of asiaIsos) if (pieces.get(iso)?.locked) n += 1;
+  return n;
+}
+
+function updateProgress() {
+  if (playKind !== "build" || mode !== "puzzle") return;
+  const el = $("progress");
+  el.hidden = false;
+  el.textContent = `${placedCount()} / ${asiaIsos.length} placed · 已放好`;
+}
+
+function skippingCards() {
+  return playKind === "build" && $("skip-cards").checked;
+}
+
+function finishPlacement(iso) {
+  updateProgress();
+  if (skippingCards() || !cards[iso]) {
+    maybeReward();
+    return;
+  }
+  openCards(iso);
+}
+
+function maybeReward() {
+  if (allLocked() && !rewarded && mode === "puzzle") {
+    rewarded = true;
+    showReward();
+  }
+}
+
 function centreLonLat(iso) {
   if (iso === "CHN") return [100, 40];
   return shapeByIso.get(iso).properties.label.slice();
@@ -246,7 +462,12 @@ function centreLonLat(iso) {
 function enterPuzzle(iso) {
   closeCards();
   closeReward();
+  closeAsk();
   rewarded = false;
+  playKind = "neighbours";
+  buildStart = null;
+  capitalRoots = new Set();
+  guideOpen = false;
   centreIso = iso;
   setMode("puzzle");
   const [lon0, lat0] = centreLonLat(iso);
@@ -281,7 +502,7 @@ function enterPuzzle(iso) {
   selected = null;
   const trays = trayLayout(iso, nbs);
   if (!trays.bottom.length) appEl.classList.add("one-tray");
-  buildTrays(trays);
+  buildTrays(trays, false);
   buildGuide(need);
   const meta = shapeByIso.get(iso).properties;
   titleEl.innerHTML = `<b>${meta.name}'s land neighbours</b><span>${meta.zh}的陆地邻国</span>`;
@@ -289,6 +510,61 @@ function enterPuzzle(iso) {
   document.title = `${meta.name} — Land Neighbours`;
   requestAnimationFrame(() => {
     fitMesh(centreMesh, 0.14);
+    requestDraw();
+  });
+}
+
+function enterBuild(iso) {
+  closeCards();
+  closeReward();
+  closeAsk();
+  rewarded = false;
+  playKind = "build";
+  buildStart = iso;
+  capitalRoots = new Set();
+  guideOpen = false;
+  centreIso = iso;
+  setMode("puzzle");
+  appEl.classList.add("one-tray");
+  proj = makeLaea(ASIA_LON, ASIA_LAT);
+  const need = asiaIsos.slice();
+  meshes = new Map();
+  thumbCache.clear();
+  for (const id of need) {
+    const feature = shapeByIso.get(id);
+    meshes.set(id, buildMesh(feature, proj, rivers[id] || []));
+  }
+  seamKm = new Map();
+  for (const [key, lines] of Object.entries(borders.seams)) {
+    const [a, b] = key.split("|");
+    if (!asiaSet.has(a) || !asiaSet.has(b)) continue;
+    const projected = [];
+    for (const line of lines) {
+      const out = [];
+      for (const [lon, lat] of line) {
+        const xy = proj.forward(lon, lat);
+        if (!xy) { out.length = 0; break; }
+        out.push(xy);
+      }
+      if (out.length >= 2) projected.push(out);
+    }
+    if (projected.length) seamKm.set(key, projected);
+  }
+  pieces = new Map();
+  const startMesh = meshes.get(iso);
+  pieces.set(iso, { iso, cx: startMesh.cx, cy: startMesh.cy, scale: 1, locked: true, fixed: true });
+  selected = null;
+  const rest = need.filter((id) => id !== iso);
+  rest.sort((a, b) => shapeByIso.get(a).properties.label[0] - shapeByIso.get(b).properties.label[0]);
+  buildTrays({ top: rest, bottom: [] }, true);
+  buildGuide(need);
+  const meta = shapeByIso.get(iso).properties;
+  titleEl.innerHTML = `<b>Build Asia</b><span>拼出亚洲 · 从${meta.zh}开始</span>`;
+  hintEl.textContent = "A shape locks only when it touches the chain · or enter a name and its capital · 形状要连上已放好的国家，或输入国名和首都";
+  document.title = "Build Asia · 拼出亚洲";
+  updateProgress();
+  requestAnimationFrame(() => {
+    fitIds(need, 0.08);
     requestDraw();
   });
 }
@@ -334,7 +610,7 @@ function thumbHtml(iso) {
   return html;
 }
 
-function buildTrays(trays) {
+function buildTrays(trays, nameless) {
   trayTop.innerHTML = "";
   trayBottom.innerHTML = "";
   const make = (iso) => {
@@ -342,7 +618,9 @@ function buildTrays(trays) {
     const tile = document.createElement("div");
     tile.className = "tray-tile";
     tile.dataset.code = iso;
-    tile.innerHTML = `${thumbHtml(iso)}<div class="name">${meta.name}<small>${meta.zh}</small></div>`;
+    const name = nameless ? "" : `<div class="name">${meta.name}<small>${meta.zh}</small></div>`;
+    tile.innerHTML = `${thumbHtml(iso)}${name}`;
+    if (nameless) tile.setAttribute("aria-label", "Piece");
     tile.addEventListener("pointerdown", (e) => startTrayDrag(e, iso));
     return tile;
   };
@@ -379,7 +657,8 @@ function buildGuide(ids) {
     }
     const fill = id === centreIso ? "#6f9468" : PALETTE[i % PALETTE.length];
     parts.push(`<path d="${d}" fill="${fill}" stroke="#1c2a24" stroke-width="${(span / 520).toFixed(2)}"><title>${meta.name} · ${meta.zh}</title></path>`);
-    if (m.width > span * 0.07) {
+    const labelCut = playKind === "build" ? 0.018 : 0.07;
+    if (m.width > span * labelCut) {
       parts.push(`<text x="${m.cx.toFixed(1)}" y="${(-m.cy).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="${(span / 38).toFixed(1)}" fill="#1b2420">${meta.name}</text>`);
     }
   });
@@ -387,14 +666,34 @@ function buildGuide(ids) {
 }
 
 function fitMesh(mesh, pad) {
+  fitBox(mesh.minX, mesh.minY, mesh.maxX, mesh.maxY, pad);
+}
+
+function fitIds(ids, pad) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const id of ids) {
+    const mesh = meshes.get(id);
+    if (!mesh) continue;
+    minX = Math.min(minX, mesh.minX);
+    minY = Math.min(minY, mesh.minY);
+    maxX = Math.max(maxX, mesh.maxX);
+    maxY = Math.max(maxY, mesh.maxY);
+  }
+  if (!Number.isFinite(minX)) return;
+  fitBox(minX, minY, maxX, maxY, pad);
+}
+
+function fitBox(minX, minY, maxX, maxY, pad) {
   const w = playfield.clientWidth || view.width;
   const h = playfield.clientHeight || view.height;
   view.width = w;
   view.height = h;
-  const kmpp = Math.max(mesh.width / (w * (1 - 2 * pad)), mesh.height / (h * (1 - 2 * pad)));
+  const kmpp = Math.max((maxX - minX) / (w * (1 - 2 * pad)), (maxY - minY) / (h * (1 - 2 * pad))) || 1;
   view.kmPerPx = clamp(kmpp, MIN_KMPP, MAX_KMPP);
-  view.originX = mesh.cx - (w * view.kmPerPx) / 2;
-  view.originY = mesh.cy - (h * view.kmPerPx) / 2;
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  view.originX = cx - (w * view.kmPerPx) / 2;
+  view.originY = cy - (h * view.kmPerPx) / 2;
 }
 
 function drawOrder() {
@@ -501,8 +800,9 @@ function drawLabels(order) {
     const mesh = meshes.get(piece.iso);
     const sx = (piece.cx - view.originX) / view.kmPerPx;
     const sy = view.height - (piece.cy - view.originY) / view.kmPerPx;
+    if (playKind === "build" && !piece.locked) continue;
     const wpx = mesh.width * piece.scale / view.kmPerPx;
-    if (wpx < 36 && piece.iso !== selected) continue;
+    if (playKind !== "build" && wpx < 36 && piece.iso !== selected) continue;
     const meta = mesh.feature.properties;
     html += `<div class="map-label" style="left:${sx}px;top:${sy}px"><b>${meta.name}</b><span>${meta.zh}</span></div>`;
   }
@@ -580,6 +880,7 @@ function globePick(px, py) {
 
 function onPlayDown(e) {
   if (e.target.closest("button") || e.target.closest("#toast") || e.target.closest(".handle")) return;
+  if (e.target.closest("#puzzle-tools") || e.target.closest("#mode-choice") || e.target.closest("#ask")) return;
   if (cardsOpen || !$("reward").hidden || busy) return;
   if (mode !== "puzzle") { startGlobeDrag(e); return; }
   const p = localPoint(e);
@@ -771,18 +1072,29 @@ function trySnap(piece) {
   const mesh = meshes.get(piece.iso);
   const dist = Math.hypot(piece.cx - mesh.cx, piece.cy - mesh.cy);
   if (sizeOk && dist <= POS_TOL_KM) {
+    if (playKind === "build" && !touchesChain(piece.iso)) {
+      showToast(
+        "This shape has to touch a country already on the chain.",
+        "这块要和已经连上的国家接壤，才能放好。",
+      );
+      return;
+    }
     piece.scale = 1;
     piece.cx = mesh.cx;
     piece.cy = mesh.cy;
     piece.locked = true;
     if (selected === piece.iso) selected = null;
-    playWeld(piece.iso, () => openCards(piece.iso));
+    updateProgress();
+    playWeld(piece.iso, () => finishPlacement(piece.iso));
   }
 }
 
 function playWeld(iso, done) {
   const lines = [];
-  const mates = [centreIso, ...borders.neighbours[centreIso]].filter((id) => id !== iso && pieces.get(id)?.locked);
+  const pool = playKind === "build"
+    ? asiaNeighbours(iso)
+    : [centreIso, ...(borders.neighbours[centreIso] || [])];
+  const mates = pool.filter((id) => id !== iso && pieces.get(id)?.locked);
   for (const other of mates) {
     const segs = seamKm.get(pairKey(iso, other));
     if (segs) lines.push(...segs);
@@ -814,6 +1126,7 @@ function onWheel(e) {
 }
 
 function allLocked() {
+  if (playKind === "build") return asiaIsos.every((iso) => pieces.get(iso)?.locked);
   if (!centreIso) return false;
   return borders.neighbours[centreIso].every((iso) => pieces.get(iso)?.locked);
 }
@@ -844,10 +1157,7 @@ function closeCards() {
   if (!cardsOpen) return;
   cardsOpen = false;
   $("card-modal").hidden = true;
-  if (allLocked() && !rewarded && mode === "puzzle") {
-    rewarded = true;
-    showReward();
-  }
+  maybeReward();
 }
 
 function onCardClick(e) {
@@ -895,8 +1205,50 @@ function renderCard() {
   if (cardIndex === 3) fillPhotos(iso, card);
 }
 
+function buildBorderSentence(iso, meta) {
+  const all = asiaNeighbours(iso);
+  const mates = all.filter((id) => pieces.get(id)?.locked);
+  if (!all.length) {
+    return {
+      en: `${meta.name} has no land neighbours.`,
+      zh: `${meta.zh}没有陆地邻国。`,
+    };
+  }
+  if (!mates.length) {
+    return {
+      en: `${meta.name} is on the map. Its land neighbours are still in the tray.`,
+      zh: `${meta.zh}已经在地图上，它的陆地邻国还在托盘里。`,
+    };
+  }
+  if (mates.length === 1) {
+    const other = shapeByIso.get(mates[0]).properties;
+    const km = borders.lengthKm[pairKey(iso, mates[0])];
+    if (km) {
+      const text = km.toLocaleString("en-US");
+      return {
+        en: `${meta.name} shares about ${text} km of land border with ${other.name}.`,
+        zh: `${meta.zh}与${other.zh}的陆地边界大约 ${text} 公里。`,
+      };
+    }
+    return {
+      en: `${meta.name} shares a land border with ${other.name}.`,
+      zh: `${meta.zh}与${other.zh}陆上接壤。`,
+    };
+  }
+  const shown = mates.slice(0, 3).map((id) => shapeByIso.get(id).properties);
+  const en = shown.map((p) => p.name).join(", ");
+  const zh = shown.map((p) => p.zh).join("、");
+  const more = mates.length > 3 ? " and others" : "";
+  const moreZh = mates.length > 3 ? "等" : "";
+  return {
+    en: `${meta.name} shares a land border with ${en}${more}.`,
+    zh: `${meta.zh}与${zh}${moreZh}陆上接壤。`,
+  };
+}
+
 function borderSentence(iso) {
   const meta = shapeByIso.get(iso).properties;
+  if (playKind === "build") return buildBorderSentence(iso, meta);
   const centre = shapeByIso.get(centreIso).properties;
   if (iso === centreIso) {
     const n = borders.neighbours[centreIso].length;
@@ -982,6 +1334,14 @@ function showReward() {
 }
 
 function makeRewardSlides() {
+  if (playKind === "build") {
+    return [
+      { en: "You built the whole of Asia.", zh: "你拼出了整个亚洲。" },
+      { en: "All 48 countries are in their real places.", zh: "48 个国家都在真正的位置上。" },
+      { en: "Islands and neighbours, together on one map.", zh: "岛屿和邻国，都在同一幅地图上。" },
+      { en: "You placed every piece.", zh: "你把每一块都放好了。", end: true },
+    ];
+  }
   const meta = shapeByIso.get(centreIso).properties;
   const nbs = borders.neighbours[centreIso];
   const slides = [];
@@ -1046,8 +1406,97 @@ function closeReward() {
   $("reward").hidden = true;
 }
 
+function openAsk(next) {
+  askMode = next;
+  askIso = next === "capital" ? askIso : null;
+  $("ask").hidden = false;
+  $("ask-input").value = "";
+  $("ask-msg").hidden = true;
+  if (next === "start") {
+    $("ask-title").textContent = "Build Asia · 拼出亚洲";
+    $("ask-help").textContent = "Type any Asian country to begin, in English or Chinese. · 用英文或中文输入任何一个亚洲国家。";
+  } else if (next === "name") {
+    $("ask-title").textContent = "Which country? · 哪个国家？";
+    $("ask-help").textContent = "Type its name. Next you will name its capital. · 先写国名，下一步写首都。";
+  } else {
+    const meta = shapeByIso.get(askIso).properties;
+    $("ask-title").textContent = `${meta.name} · ${meta.zh}`;
+    $("ask-help").textContent = "What is its capital? · 它的首都叫什么？";
+  }
+  requestAnimationFrame(() => $("ask-input").focus());
+}
+
+function closeAsk() {
+  askMode = null;
+  askIso = null;
+  $("ask").hidden = true;
+  $("ask-msg").hidden = true;
+}
+
+function setAskMsg(en, zh) {
+  const el = $("ask-msg");
+  el.hidden = false;
+  el.textContent = `${en} ${zh}`;
+}
+
+function onAskSubmit(e) {
+  e.preventDefault();
+  const raw = $("ask-input").value;
+  if (askMode === "capital") {
+    if (!capitalMatches(askIso, raw)) {
+      setAskMsg("That's not the capital. Try again.", "这不是首都，再试一次。");
+      return;
+    }
+    const iso = askIso;
+    closeAsk();
+    placeByCapital(iso);
+    return;
+  }
+  const found = lookupCountry(raw);
+  if (found.kind === "empty") {
+    setAskMsg("Type a country name.", "请输入一个国家的名字。");
+    return;
+  }
+  if (found.kind === "unknown") {
+    setAskMsg("I can't find that one. Try the English or Chinese name.", "没找到。试试英文或中文名字。");
+    return;
+  }
+  if (found.kind === "not-asia") {
+    setAskMsg("That country is not on this Asia map.", "这个国家不在这幅亚洲地图上。");
+    return;
+  }
+  if (askMode === "start") {
+    enterBuild(found.iso);
+    return;
+  }
+  if (pieces.get(found.iso)?.locked) {
+    setAskMsg("That country is already on the map.", "这个国家已经放好了。");
+    return;
+  }
+  askIso = found.iso;
+  openAsk("capital");
+}
+
+function placeByCapital(iso) {
+  const mesh = meshes.get(iso);
+  if (!mesh || pieces.get(iso)?.locked) return;
+  const piece = pieces.get(iso) || { iso, fixed: false };
+  piece.cx = mesh.cx;
+  piece.cy = mesh.cy;
+  piece.scale = 1;
+  piece.locked = true;
+  piece.fixed = false;
+  pieces.set(iso, piece);
+  capitalRoots.add(iso);
+  markTray(iso, true);
+  if (selected === iso) selected = null;
+  updateProgress();
+  requestDraw();
+  playWeld(iso, () => finishPlacement(iso));
+}
+
 function lockAll() {
-  if (mode !== "puzzle") return;
+  if (mode !== "puzzle" || playKind === "build") return;
   for (const iso of borders.neighbours[centreIso]) {
     const mesh = meshes.get(iso);
     let piece = pieces.get(iso);
@@ -1068,10 +1517,51 @@ function lockAll() {
 
 window.__game = {
   get mode() { return mode; },
+  get playKind() { return playKind; },
   get centre() { return centreIso; },
+  get guideOpen() { return guideOpen; },
+  get progress() {
+    if (playKind !== "build") return null;
+    return { placed: placedCount(), total: asiaIsos.length };
+  },
   go: (iso) => {
     const id = String(iso || "").toUpperCase();
     if (borders?.neighbours[id]?.length) enterPuzzle(id);
+  },
+  build(name) {
+    const found = lookupCountry(name);
+    if (found.kind !== "asia") return found;
+    enterBuild(found.iso);
+    return { ok: true, iso: found.iso, placed: placedCount(), total: asiaIsos.length };
+  },
+  answer(name, capital) {
+    if (playKind !== "build") return { ok: false, reason: "mode" };
+    const found = lookupCountry(name);
+    if (found.kind !== "asia") return { ok: false, ...found };
+    if (pieces.get(found.iso)?.locked) return { ok: false, reason: "placed", iso: found.iso };
+    if (!capitalMatches(found.iso, capital)) return { ok: false, reason: "capital", iso: found.iso };
+    placeByCapital(found.iso);
+    return { ok: true, iso: found.iso, placed: placedCount(), total: asiaIsos.length, locked: true };
+  },
+  chain(iso) {
+    const id = String(iso || "").toUpperCase();
+    return touchesChain(id);
+  },
+  reveal(open) {
+    setGuideOpen(open);
+    return guideOpen;
+  },
+  skip(on) {
+    $("skip-cards").checked = !!on;
+    return $("skip-cards").checked;
+  },
+  frame(iso) {
+    const id = String(iso || "").toUpperCase();
+    const mesh = meshes.get(id);
+    if (!mesh || mode !== "puzzle") return false;
+    fitMesh(mesh, 0.22);
+    requestDraw();
+    return true;
   },
   asia: enterAsia,
   world: enterWorld,
@@ -1115,16 +1605,18 @@ window.__game = {
   },
   // Place a neighbour within the snap tolerance so the weld runs, then the card opens.
   snap(iso) {
-    if (mode !== "puzzle" || !meshes.has(iso) || iso === centreIso) return;
-    const mesh = meshes.get(iso);
-    const piece = pieces.get(iso) || { iso, locked: false, fixed: false };
+    const id = String(iso || "").toUpperCase();
+    if (mode !== "puzzle" || !meshes.has(id) || pieces.get(id)?.fixed) return false;
+    const mesh = meshes.get(id);
+    const piece = pieces.get(id) || { iso: id, locked: false, fixed: false };
     piece.cx = mesh.cx + 40;
     piece.cy = mesh.cy;
     piece.scale = 1;
     piece.locked = false;
-    pieces.set(iso, piece);
-    markTray(iso, true);
+    pieces.set(id, piece);
+    markTray(id, true);
     trySnap(piece);
+    return !!pieces.get(id)?.locked;
   },
 };
 

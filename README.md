@@ -17,11 +17,11 @@ Open **http://localhost:8765/** in Chrome. The page loads JSON and pictures with
 ## How to play
 
 1. **Globe.** Drag to spin it. Click **Asia** (Russia is included with Asia here, because most of its land is there and it is one of China’s neighbours). Other continents show “Coming soon / 即将推出”.
-2. **Asia.** Click a country. If it has land neighbours, its puzzle opens. If it is an island with no land border, a short note says so. **Back · 返回** goes to the globe.
+2. **Asia.** Choose a game. **Neighbours · 邻国拼图:** click a country. If it has land neighbours, its puzzle opens. If it is an island with no land border, a short note says so. **Build Asia · 拼出亚洲:** type any Asian country (English or Chinese). It is placed, named, on an empty map of Asia. The other countries are nameless shapes. A shape locks only when it touches the chain of countries already placed. **Enter country name · 输入国名** asks for the capital and, if both are right, fills that country in even when it is not connected yet (islands included). **Skip cards · 跳过卡片** keeps the border flash and skips the four cards. **Back · 返回** goes to the globe.
 3. **Puzzle.** The centre country stays fixed at its true size. Neighbours start in the tray (one row, or two when there are more than seven). China’s tray is the familiar 7 + 7 order.
 4. Drag a country onto the map. Drag a **corner** to resize. The **%** by the cursor is that piece’s own true size (100% is correct), not a comparison with the centre country.
 5. Near the right size (**±7%**) and the right place (**about 180 km**), it snaps, locks, and a bright line runs along the border it shares. Then a four-card sequence opens.
-6. **Scroll** zooms on the cursor. **Drag empty map**, **right-drag**, or **Space+drag** pans. The example map on the right shows the finished layout.
+6. **Scroll** zooms on the cursor. **Drag empty map**, **right-drag**, or **Space+drag** pans. **Reveal map · 显示地图** opens the finished example, and closes again. It stays closed until you ask for it.
 7. Click a locked country to open its cards again. **Esc** closes the cards.
 8. When every neighbour is locked and the cards are closed, a short ending plays (about 4–5 seconds a sentence). **Back to map · 返回地图** or **Esc** returns to the finished map. The puzzle is not reset.
 

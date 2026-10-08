@@ -16,6 +16,7 @@ button { font: inherit; cursor: pointer; }
 }
 #app.mode-puzzle { --tray: 104px; --tray-b: 104px; }
 #app.mode-puzzle.one-tray { --tray-b: 0px; }
+#app.mode-puzzle.mode-build { --tray: 128px; --tray-b: 0px; }
 #app:not(.mode-puzzle) .tray,
 #app.one-tray #tray-bottom { display: none; }
 
@@ -29,6 +30,21 @@ button { font: inherit; cursor: pointer; }
   border-color: rgba(214, 184, 122, 0.28);
   z-index: 3;
 }
+#app.mode-build #tray-top {
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-color: #d6b87a #12202b;
+}
+#app.mode-build .tray-tile {
+  flex: 0 0 96px;
+  width: 96px;
+  max-width: 96px;
+  min-width: 96px;
+}
+#app.mode-build .tray-tile .thumb,
+#app.mode-build .tray-tile .thumb img,
+#app.mode-build .tray-tile .thumb svg { height: 96px; }
 #tray-top { border-bottom: 1px solid rgba(214, 184, 122, 0.28); }
 #tray-bottom { border-top: 1px solid rgba(214, 184, 122, 0.28); }
 .tray-tile {
@@ -92,7 +108,7 @@ button { font: inherit; cursor: pointer; }
 }
 #tray-top { grid-row: 1; }
 #tray-bottom { grid-row: 3; }
-#app.mode-puzzle .workspace { grid-template-columns: minmax(0, 1fr) minmax(240px, 340px); }
+#app.mode-puzzle.guide-open .workspace { grid-template-columns: minmax(0, 1fr) minmax(240px, 340px); }
 .play-wrap { min-width: 0; min-height: 0; position: relative; }
 #playfield {
   position: absolute;
@@ -170,7 +186,49 @@ button { font: inherit; cursor: pointer; }
 }
 .handle.ne, .handle.sw { cursor: nesw-resize; }
 
-#back, #title, #hint, #toast { position: absolute; z-index: 4; }
+#back, #title, #hint, #toast, #puzzle-tools, #mode-choice { position: absolute; z-index: 4; }
+#puzzle-tools {
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+#puzzle-tools button, #skip-wrap, #progress {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(8, 16, 24, 0.78);
+  color: #f3f7fb;
+  border-radius: 999px;
+  padding: 7px 12px;
+  backdrop-filter: blur(6px);
+}
+#puzzle-tools button:hover, #choose-neighbours:hover, #choose-build:hover { border-color: #d6b87a; }
+#reveal-map[aria-pressed="true"] { border-color: #d6b87a; color: #f0e2c4; }
+#progress { font-weight: 750; letter-spacing: 0.02em; }
+#skip-wrap { display: flex; gap: 6px; align-items: center; font-size: 13px; cursor: pointer; }
+#skip-wrap input { accent-color: #d6b87a; }
+#mode-choice {
+  left: 50%;
+  bottom: 46px;
+  transform: translateX(-50%);
+  background: rgba(8, 16, 24, 0.86);
+  border: 1px solid rgba(214, 184, 122, 0.5);
+  border-radius: 16px;
+  padding: 12px 14px 14px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+#mode-choice p { font-size: 14px; color: #f0e2c4; margin-bottom: 8px; }
+.choice-row { display: flex; gap: 8px; }
+#choose-neighbours, #choose-build {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: #182833;
+  color: #f3f7fb;
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+#choose-build { background: #243044; border-color: #d6b87a; }
 #back {
   top: 12px;
   left: 12px;
@@ -227,7 +285,18 @@ button { font: inherit; cursor: pointer; }
   flex-direction: column;
   gap: 8px;
 }
+.guide-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 #guide h2 { font-size: 14px; font-weight: 650; color: #f0e2c4; letter-spacing: 0.02em; }
+#guide-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
+  color: #f3f7fb;
+  line-height: 1;
+  font-size: 18px;
+}
 #guide-svg-wrap { flex: 1; min-height: 0; }
 #guide-svg-wrap svg { width: 100%; height: 100%; background: #d8e3ea; border-radius: 10px; }
 #guide text { font-family: "Avenir Next", "Segoe UI", sans-serif; font-weight: 700; }
@@ -468,9 +537,62 @@ button { font: inherit; cursor: pointer; }
   font-size: 18px;
 }
 
+#ask {
+  position: fixed;
+  inset: 0;
+  z-index: 32;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 10, 16, 0.55);
+  padding: 18px;
+}
+.ask-panel {
+  width: min(460px, 92vw);
+  background: #f6f0e4;
+  color: #241c14;
+  border-radius: 18px;
+  padding: 22px 22px 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+}
+#ask-title {
+  font-family: Palatino, "Iowan Old Style", "Songti SC", serif;
+  font-size: 28px;
+  font-weight: 650;
+}
+#ask-help { margin: 6px 0 12px; color: #4d4034; }
+#ask-input {
+  width: 100%;
+  font: inherit;
+  font-size: 18px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #c9b79a;
+  background: #fff;
+  color: #241c14;
+}
+#ask-msg { margin-top: 8px; color: #8a3b2a; min-height: 1.2em; }
+.ask-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.ask-actions button {
+  border-radius: 999px;
+  border: 1px solid #c9b79a;
+  background: #fff;
+  padding: 8px 14px;
+  color: #241c14;
+}
+#ask-ok { background: #243044; color: #f6f0e4; border-color: #243044; }
+
 @media (max-width: 860px) {
-  #app.mode-puzzle .workspace { grid-template-columns: 1fr; }
-  #guide { display: none !important; }
+  #app.mode-puzzle.guide-open .workspace { grid-template-columns: 1fr; }
+  #app.mode-puzzle.guide-open #guide {
+    display: flex !important;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(340px, 88vw);
+    z-index: 6;
+  }
+  .choice-row { flex-direction: column; }
   .reward-en { font-size: 28px; }
   #card-title { font-size: 24px; }
 }
