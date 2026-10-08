@@ -561,6 +561,7 @@ function enterPuzzle(iso) {
   titleEl.innerHTML = `<b>${meta.name}'s land neighbours</b><span>${meta.zh}的陆地邻国</span>`;
   hintEl.textContent = "Scroll = zoom · drag a corner to resize · drag empty map / right-drag / Space+drag = pan";
   document.title = `${meta.name} — Land Neighbours`;
+  syncIslandNote();
   requestAnimationFrame(() => {
     fitMesh(centreMesh, 0.14);
     requestDraw();
@@ -871,7 +872,9 @@ function drawGhosts() {
     const mesh = meshes.get(iso);
     if (!mesh) continue;
     const d = screenPath(mesh.rings, { cx: mesh.cx, cy: mesh.cy, scale: 1 }, view);
-    html += `<path class="ghost${iso === namedFlash ? " named" : ""}" data-iso="${iso}" d="${d}"/>`;
+    const span = Math.max(mesh.width, mesh.height) / view.kmPerPx;
+    const stroke = span < 26 ? 3.4 : 2.4;
+    html += `<path class="ghost${iso === namedFlash ? " named" : ""}" data-iso="${iso}" style="stroke-width:${stroke}px" d="${d}"/>`;
   }
   ghostsEl.innerHTML = html;
 }
