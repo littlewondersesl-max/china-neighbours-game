@@ -24,16 +24,17 @@ const PIECE_FS = `
 precision mediump float;
 uniform sampler2D uTex;
 uniform float uShadow;
+uniform float uAlpha;
 varying vec2 vLL;
 void main() {
   if (uShadow > 0.5) {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.38);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.38 * uAlpha);
     return;
   }
   float u = fract((vLL.x + 180.0) / 360.0);
   float v = (vLL.y + 90.0) / 180.0;
   vec3 c = texture2D(uTex, vec2(u, v)).rgb;
-  gl_FragColor = vec4(c, 1.0);
+  gl_FragColor = vec4(c * uAlpha, uAlpha);
 }`;
 
 const GLOBE_VS = `
@@ -151,6 +152,7 @@ export function createView(canvas, options = {}) {
     uScale: gl.getUniformLocation(pieceProg, "uScale"),
     uPxOffset: gl.getUniformLocation(pieceProg, "uPxOffset"),
     uShadow: gl.getUniformLocation(pieceProg, "uShadow"),
+    uAlpha: gl.getUniformLocation(pieceProg, "uAlpha"),
   };
   const globeLoc = {
     aLL: gl.getAttribLocation(globeProg, "aLL"),
@@ -222,8 +224,8 @@ export function createView(canvas, options = {}) {
     ready = true;
   }
 
-  function resize(cssW, cssH) {
-    const dpr = Math.min(1.5, window.devicePixelRatio || 1);
+  function resize(cssW, cssH, ratio) {
+    const dpr = ratio == null ? Math.min(1.5, window.devicePixelRatio || 1) : ratio;
     const w = Math.max(1, Math.round(cssW * dpr));
     const h = Math.max(1, Math.round(cssH * dpr));
     if (canvas.width !== w || canvas.height !== h) {
@@ -260,7 +262,9 @@ export function createView(canvas, options = {}) {
       gl.vertexAttribPointer(pieceLoc.aLL, 2, gl.FLOAT, false, 16, 8);
       gl.uniform2f(pieceLoc.uCenter, entry.cx, entry.cy);
       gl.uniform1f(pieceLoc.uScale, entry.scale);
-      if (shadow) {
+      const alpha = entry.alpha == null ? 1 : entry.alpha;
+      gl.uniform1f(pieceLoc.uAlpha, alpha);
+      if (shadow && alpha > 0.85) {
         gl.uniform2f(pieceLoc.uPxOffset, 5, 6);
         gl.uniform1f(pieceLoc.uShadow, 1);
         gl.drawElements(gl.TRIANGLES, buf.count, buf.type, 0);

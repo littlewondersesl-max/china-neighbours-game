@@ -1,5 +1,6 @@
-import { makeLaea, buildMesh, boundsOfFeature, pairKey, screenPath, linePath, absLinePath } from "./geo.js";
+import { makeLaea, buildMesh, boundsOfFeature, pairKey, screenPath, absLinePath } from "./geo.js";
 import { createView } from "./gl.js";
+import { prepareWorldStrokes, drawGlobeStrokes } from "./strokes.js";
 import { LANGS, pick, line, htmlStack, esc, getLang, setLang, onLangChange, activeLangs, langButtonText, scriptLang } from "./i18n.js";
 
 const SIZE_TOL = 0.07;
@@ -64,6 +65,7 @@ const appEl = $("app");
 const labelsEl = $("labels");
 const handlesEl = $("handles");
 const linesEl = $("lines");
+const strokesEl = $("strokes");
 const ghostsEl = $("ghosts");
 const coastsEl = $("coasts");
 const weldEl = $("weld");
@@ -116,6 +118,14 @@ let rewardSlides = [];
 let weldToken = 0;
 let drawQueued = false;
 let globeAnimating = false;
+let interacting = false;
+let idleTimer = 0;
+let worldStrokes = null;
+let overlayMode = "";
+const lineNodes = new Map();
+let gratNode = null;
+let gratFor = null;
+let gratD = "";
 
 let worldFeatures = [];
 let shapeByIso = new Map();
@@ -146,6 +156,27 @@ function requestDraw() {
     drawQueued = false;
     draw();
   });
+}
+
+function noteInteraction() {
+  interacting = true;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (pointers.size || pinching || globeAnimating) {
+      noteInteraction();
+      return;
+    }
+    interacting = false;
+    requestDraw();
+  }, 140);
+}
+
+function pixelRatio() {
+  const dpr = window.devicePixelRatio || 1;
+  // A 1080p TV reports 1. Resizing the drawing buffer for a fraction of a pixel
+  // is pure overhead, and a moving view stays at 1x so the picture can keep up.
+  if (interacting || dpr <= 1.25) return 1;
+  return Math.min(dpr, 1.5);
 }
 
 function loadJSON(url) {
@@ -185,6 +216,7 @@ async function init() {
     reliefImage = relief;
     worldFeatures = world.features;
     for (const f of worldFeatures) f._b = boundsOfFeature(f);
+    worldStrokes = prepareWorldStrokes(worldFeatures);
     for (const f of shapes.features) shapeByIso.set(f.properties.iso, f);
     indexNames();
     mainGL.setRelief(relief);
@@ -529,6 +561,7 @@ function back() {
 function animateGlobe() {
   if (globeAnimating) return;
   globeAnimating = true;
+  noteInteraction();
   let last = 0;
   const step = (now) => {
     try {
@@ -536,6 +569,7 @@ function animateGlobe() {
       const dt = last ? Math.min(0.08, (now - last) / 1000) : 0.016;
       last = now;
       const k = 1 - Math.exp(-dt / 0.09);
+      noteInteraction();
       if (globeAnchor) {
         globe.mul += (globe.targetMul - globe.mul) * k;
         holdAnchor(globeAnchor);
@@ -1020,26 +1054,72 @@ function draw() {
   if (w < 2 || h < 2) return;
   view.width = w;
   view.height = h;
-  mainGL.resize(w, h);
+  mainGL.resize(w, h, pixelRatio());
   if (mode === "puzzle" && proj) {
+    if (overlayMode !== "puzzle") {
+      overlayMode = "puzzle";
+      resetOverlay();
+    }
     const order = drawOrder();
     mainGL.drawPieces(order.map((p) => ({
       mesh: meshes.get(p.iso), cx: p.cx, cy: p.cy, scale: p.scale,
-    })), view);
-    drawPuzzleLines(order);
-    drawGhosts();
-    drawLabels(order);
-    drawHandles();
-    graticuleEl.innerHTML = puzzleGraticule();
+    })), view, { shadow: !interacting });
+    if (interacting) {
+      playfield.classList.add("interacting");
+      drawFastPuzzleLines(order);
+    } else {
+      clearStrokes(w, h);
+      playfield.classList.remove("interacting");
+      syncPuzzleLines(order);
+      syncGraticule();
+      drawGhosts();
+      drawLabels(order);
+      drawHandles();
+    }
   } else {
+    if (overlayMode !== "globe") {
+      overlayMode = "globe";
+      resetOverlay();
+      ghostsEl.replaceChildren();
+      labelsEl.replaceChildren();
+      handlesEl.replaceChildren();
+    }
     const radius = globeRadius();
     mainGL.drawGlobe(globe.lon0, globe.lat0, radius, w, h);
     drawGlobeLines(radius);
-    ghostsEl.innerHTML = "";
-    labelsEl.innerHTML = "";
-    handlesEl.innerHTML = "";
-    graticuleEl.innerHTML = "";
+    if (interacting) playfield.classList.add("interacting");
+    else playfield.classList.remove("interacting");
   }
+}
+
+function resetOverlay() {
+  lineNodes.clear();
+  linesEl.replaceChildren();
+  gratNode = null;
+  gratFor = null;
+  gratD = "";
+  graticuleEl.replaceChildren();
+}
+
+function strokeContext(w, h) {
+  const ratio = pixelRatio();
+  const bw = Math.max(1, Math.round(w * ratio));
+  const bh = Math.max(1, Math.round(h * ratio));
+  if (strokesEl.width !== bw || strokesEl.height !== bh) {
+    strokesEl.width = bw;
+    strokesEl.height = bh;
+  }
+  const ctx = strokesEl.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  strokesEl.hidden = false;
+  return ctx;
+}
+
+function clearStrokes(w, h) {
+  if (strokesEl.hidden && strokesEl.width < 2) return;
+  const ctx = strokeContext(w, h);
+  ctx.clearRect(0, 0, w, h);
+  strokesEl.hidden = true;
 }
 
 function globeRadius() {
@@ -1047,61 +1127,151 @@ function globeRadius() {
 }
 
 function drawGlobeLines(radius) {
-  ortho.rotate([-globe.lon0, -globe.lat0]).translate([view.width / 2, view.height / 2]).scale(radius);
-  const path = d3.geoPath(ortho);
-  const grat = d3.geoGraticule10();
-  let html = `<path class="graticule" d="${path(grat) || ""}"/>`;
-  html += `<path class="sphere" d="${path({ type: "Sphere" }) || ""}"/>`;
-  for (const f of worldFeatures) {
-    const d = path(f);
-    if (!d) continue;
-    const asia = f.properties.continent === "Asia";
-    const dim = mode === "asia" && !asia;
-    html += `<path class="country-stroke${asia ? " asia" : ""}${dim ? " dim" : ""}" d="${d}"/>`;
-  }
-  linesEl.innerHTML = html;
+  if (!worldStrokes) return;
+  const ctx = strokeContext(view.width, view.height);
+  drawGlobeStrokes(ctx, view.width, view.height, worldStrokes, globe.lon0, globe.lat0, radius, mode, interacting);
 }
 
-function puzzleGraticule() {
-  if (!proj) return "";
-  const parts = [];
-  const add = (pts) => {
-    let d = "";
-    let open = false;
-    for (const [lon, lat] of pts) {
-      const xy = proj.forward(lon, lat);
-      if (!xy) { open = false; continue; }
-      const sx = (xy[0] - view.originX) / view.kmPerPx;
-      const sy = view.height - (xy[1] - view.originY) / view.kmPerPx;
-      if (sx < -200 || sy < -200 || sx > view.width + 200 || sy > view.height + 200) { open = false; continue; }
-      d += (open ? "L" : "M") + sx.toFixed(1) + " " + sy.toFixed(1) + " ";
-      open = true;
+const SVGNS = "http://www.w3.org/2000/svg";
+
+function kmPath(lines, close) {
+  let d = "";
+  for (const line of lines) {
+    for (let i = 0; i < line.length; i++) {
+      d += (i ? "L" : "M") + line[i][0].toFixed(1) + " " + (-line[i][1]).toFixed(1) + " ";
     }
-    if (d) parts.push(`<path d="${d}"/>`);
-  };
-  for (let lon = -180; lon <= 180; lon += 15) {
-    const pts = [];
-    for (let lat = -70; lat <= 80; lat += 4) pts.push([lon, lat]);
-    add(pts);
+    if (close) d += "Z ";
   }
-  for (let lat = -60; lat <= 80; lat += 15) {
-    const pts = [];
-    for (let lon = -180; lon <= 180; lon += 4) pts.push([lon, lat]);
-    add(pts);
-  }
-  return parts.join("");
+  return d;
 }
 
-function drawPuzzleLines(order) {
-  let html = "";
+function kmTransform(cx, cy, scale) {
+  const a = scale / view.kmPerPx;
+  const tx = (cx - view.originX) / view.kmPerPx;
+  const ty = view.height - (cy - view.originY) / view.kmPerPx;
+  return `matrix(${a.toFixed(5)},0,0,${a.toFixed(5)},${tx.toFixed(2)},${ty.toFixed(2)})`;
+}
+
+function coarseRings(mesh) {
+  if (mesh.coarse) return mesh.coarse;
+  mesh.coarse = mesh.rings.map((ring) => {
+    if (ring.length < 220) return ring;
+    const stride = Math.ceil(ring.length / 160);
+    const out = [];
+    for (let i = 0; i < ring.length; i += stride) out.push(ring[i]);
+    if (out[out.length - 1] !== ring[ring.length - 1]) out.push(ring[ring.length - 1]);
+    return out;
+  });
+  return mesh.coarse;
+}
+
+function drawFastPuzzleLines(order) {
+  const ctx = strokeContext(view.width, view.height);
+  ctx.clearRect(0, 0, view.width, view.height);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.lineWidth = 1.15;
+  ctx.beginPath();
   for (const piece of order) {
     const mesh = meshes.get(piece.iso);
-    const riversD = linePath(mesh.rivers, piece, view);
-    if (riversD) html += `<path class="river" d="${riversD}"/>`;
-    const outline = screenPath(mesh.rings, piece, view);
-    html += `<path class="outline${piece.fixed ? " centre" : ""}${piece.locked ? " locked" : ""}" d="${outline}"/>`;
+    if (!mesh) continue;
+    for (const ring of coarseRings(mesh)) {
+      for (let i = 0; i < ring.length; i++) {
+        const x = piece.cx + piece.scale * ring[i][0];
+        const y = piece.cy + piece.scale * ring[i][1];
+        const sx = (x - view.originX) / view.kmPerPx;
+        const sy = view.height - (y - view.originY) / view.kmPerPx;
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.closePath();
+    }
   }
-  linesEl.innerHTML = html;
+  ctx.strokeStyle = "rgba(255,255,255,0.82)";
+  ctx.stroke();
+}
+
+function ensureMeshPaths(mesh) {
+  if (mesh.ringD != null) return;
+  mesh.ringD = kmPath(mesh.rings, true);
+  mesh.riverD = kmPath(mesh.rivers, false);
+}
+
+function syncPuzzleLines(order) {
+  const seen = new Set();
+  for (const piece of order) {
+    const mesh = meshes.get(piece.iso);
+    if (!mesh) continue;
+    seen.add(piece.iso);
+    ensureMeshPaths(mesh);
+    let node = lineNodes.get(piece.iso);
+    if (!node) {
+      const g = document.createElementNS(SVGNS, "g");
+      const river = document.createElementNS(SVGNS, "path");
+      river.setAttribute("class", "river");
+      river.setAttribute("d", mesh.riverD);
+      if (!mesh.riverD) river.setAttribute("visibility", "hidden");
+      const outline = document.createElementNS(SVGNS, "path");
+      outline.setAttribute("d", mesh.ringD);
+      g.append(river, outline);
+      linesEl.append(g);
+      node = { g, outline, cls: "" };
+      lineNodes.set(piece.iso, node);
+    }
+    const cls = `outline${piece.fixed ? " centre" : ""}${piece.locked ? " locked" : ""}`;
+    if (node.cls !== cls) {
+      node.outline.setAttribute("class", cls);
+      node.cls = cls;
+    }
+    const tf = kmTransform(piece.cx, piece.cy, piece.scale);
+    if (node.tf !== tf) {
+      node.g.setAttribute("transform", tf);
+      node.tf = tf;
+    }
+  }
+  for (const [iso, node] of lineNodes) {
+    if (seen.has(iso)) continue;
+    node.g.remove();
+    lineNodes.delete(iso);
+  }
+}
+
+function syncGraticule() {
+  if (!proj) return;
+  if (gratFor !== proj) {
+    const lines = [];
+    const push = (lon, lat, pts) => {
+      const xy = proj.forward(lon, lat);
+      if (!xy) {
+        if (pts.length > 1) lines.push(pts.slice());
+        pts.length = 0;
+        return;
+      }
+      pts.push(xy);
+    };
+    for (let lon = -180; lon <= 180; lon += 15) {
+      const pts = [];
+      for (let lat = -70; lat <= 80; lat += 4) push(lon, lat, pts);
+      if (pts.length > 1) lines.push(pts);
+    }
+    for (let lat = -60; lat <= 80; lat += 15) {
+      const pts = [];
+      for (let lon = -180; lon <= 180; lon += 4) push(lon, lat, pts);
+      if (pts.length > 1) lines.push(pts);
+    }
+    gratD = kmPath(lines, false);
+    gratFor = proj;
+    gratNode = null;
+    graticuleEl.replaceChildren();
+  }
+  if (!gratNode) {
+    gratNode = document.createElementNS(SVGNS, "g");
+    const path = document.createElementNS(SVGNS, "path");
+    path.setAttribute("d", gratD);
+    gratNode.append(path);
+    graticuleEl.append(gratNode);
+  }
+  gratNode.setAttribute("transform", kmTransform(0, 0, 1));
 }
 
 function drawGhosts() {
@@ -1628,6 +1798,7 @@ function startGlobeDrag(e) {
     globe.targetLon = globe.lon0;
     globe.targetLat = globe.lat0;
     globe.targetMul = globe.mul;
+    noteInteraction();
     requestDraw();
   }, () => {
     if (!moved) onGlobeClick(localPoint(e));
@@ -1681,6 +1852,7 @@ function startPlacedGesture(e, iso) {
     moved = true;
     view.originX = originX - dx * view.kmPerPx;
     view.originY = originY + dy * view.kmPerPx;
+    noteInteraction();
     requestDraw();
   }, () => {
     endShake();
@@ -1704,6 +1876,7 @@ function startPan(e) {
     const dy = ev.clientY - startY;
     view.originX = originX - dx * view.kmPerPx;
     view.originY = originY + dy * view.kmPerPx;
+    noteInteraction();
     requestDraw();
   }, () => {
     endShake();
@@ -1767,6 +1940,7 @@ function startMove(e, iso) {
     piece.cx = g.gx + offGx;
     piece.cy = g.gy + offGy;
     showPct(piece, ev.clientX, ev.clientY);
+    noteInteraction();
     requestDraw();
   }, () => {
     endShake();
@@ -1795,6 +1969,7 @@ function startResize(e, iso, corner) {
     const correctW = mesh.width / view.kmPerPx;
     piece.scale = clamp(startScale + dW / correctW, 0.02, 8);
     showPct(piece, ev.clientX, ev.clientY);
+    noteInteraction();
     requestDraw();
   }, () => endGesture(piece));
 }
@@ -1885,6 +2060,7 @@ function onWheel(e) {
     view.kmPerPx = clamp(view.kmPerPx / factor, MIN_KMPP, MAX_KMPP);
     view.originX = before.gx - p.x * view.kmPerPx;
     view.originY = before.gy - (view.height - p.y) * view.kmPerPx;
+    noteInteraction();
     requestDraw();
     return;
   }
@@ -1980,6 +2156,7 @@ function onPointerMove(e) {
     view.kmPerPx = clamp(pinch.kmpp / ratio, MIN_KMPP, MAX_KMPP);
     view.originX = before.gx - mid.x * view.kmPerPx;
     view.originY = before.gy - (view.height - mid.y) * view.kmPerPx;
+    noteInteraction();
     requestDraw();
     return;
   }
@@ -1992,6 +2169,7 @@ function onPointerMove(e) {
     globe.targetLon = globe.lon0;
     globe.targetLat = globe.lat0;
   }
+  noteInteraction();
   requestDraw();
 }
 
@@ -2147,20 +2325,81 @@ function borderSentence(iso) {
   };
 }
 
+function cardMates(iso) {
+  if (playKind === "build") {
+    return buildNeighbours(iso).filter((id) => id !== iso && pieces.get(id)?.locked && meshes.has(id));
+  }
+  if (!centreIso || !meshes.has(centreIso)) return [];
+  if (iso === centreIso) return (borders.neighbours[centreIso] || []).filter((id) => meshes.has(id));
+  return [centreIso];
+}
+
+function cardFrame(mesh, mates) {
+  let minX = mesh.minX, minY = mesh.minY, maxX = mesh.maxX, maxY = mesh.maxY;
+  const span = Math.max(mesh.width, mesh.height) || 1;
+  for (const id of mates) {
+    const other = meshes.get(id);
+    if (!other || Math.max(other.width, other.height) > span * 1.4) continue;
+    minX = Math.min(minX, other.minX);
+    minY = Math.min(minY, other.minY);
+    maxX = Math.max(maxX, other.maxX);
+    maxY = Math.max(maxY, other.maxY);
+  }
+  return { minX, minY, maxX, maxY };
+}
+
+function sharedBorderPaths(iso, mates, cardView) {
+  const paths = [];
+  for (const id of mates) {
+    const lines = borders.seams[pairKey(iso, id)] || [];
+    for (const line of lines) {
+      let d = "";
+      let n = 0;
+      let broke = false;
+      for (const [lon, lat] of line) {
+        const xy = proj.forward(lon, lat);
+        if (!xy) { broke = true; break; }
+        const s = screenOfKm(xy[0], xy[1], cardView);
+        d += (n ? "L" : "M") + s.x.toFixed(1) + " " + s.y.toFixed(1) + " ";
+        n += 1;
+      }
+      if (!broke && n >= 2) paths.push(d);
+    }
+  }
+  return paths;
+}
+
 function drawCardShape(iso, racing) {
   const mesh = meshes.get(iso);
   if (!mesh) return;
+  const mates = racing ? cardMates(iso) : [];
+  const box = cardFrame(mesh, mates);
   const w = 640, h = 340;
-  const pad = 0.84;
-  const kmpp = Math.max(mesh.width / (w * pad), mesh.height / (h * pad)) || 1;
+  const pad = 0.8;
+  const kmpp = Math.max((box.maxX - box.minX) / (w * pad), (box.maxY - box.minY) / (h * pad)) || 1;
+  const midX = (box.minX + box.maxX) / 2;
+  const midY = (box.minY + box.maxY) / 2;
   const cardView = {
     width: w, height: h, kmPerPx: kmpp,
-    originX: mesh.cx - (w * kmpp) / 2,
-    originY: mesh.cy - (h * kmpp) / 2,
+    originX: midX - (w * kmpp) / 2,
+    originY: midY - (h * kmpp) / 2,
   };
-  const piece = { cx: mesh.cx, cy: mesh.cy, scale: 1 };
+  const entries = [];
+  for (const id of mates) {
+    const other = meshes.get(id);
+    entries.push({ mesh: other, cx: other.cx, cy: other.cy, scale: 1, alpha: 0.42 });
+  }
+  entries.push({ mesh, cx: mesh.cx, cy: mesh.cy, scale: 1, alpha: 1 });
   cardGL.resize(w, h);
-  cardGL.drawPieces([{ mesh, cx: piece.cx, cy: piece.cy, scale: 1 }], cardView);
+  cardGL.drawPieces(entries, cardView, { shadow: false });
+  const piece = { cx: mesh.cx, cy: mesh.cy, scale: 1 };
+  const bordersD = racing ? sharedBorderPaths(iso, mates, cardView) : [];
+  const quiet = bordersD.length > 0;
+  let matesSvg = "";
+  for (const id of mates) {
+    const other = meshes.get(id);
+    matesSvg += `<path class="mate" d="${screenPath(other.rings, { cx: other.cx, cy: other.cy, scale: 1 }, cardView)}"/>`;
+  }
   const outline = screenPath(mesh.rings, piece, cardView);
   const card = cards[iso];
   let dot = "";
@@ -2171,11 +2410,14 @@ function drawCardShape(iso, racing) {
       dot = `<circle class="capital" cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="5.5"/>`;
     }
   }
+  const seam = bordersD.map((d) => `<path class="seam" d="${d}"/>`).join("");
+  const comet = bordersD.map((d) =>
+    `<path class="comet comet-glow" pathLength="1000" d="${d}"/>` +
+    `<path class="comet comet-tail" pathLength="1000" d="${d}"/>` +
+    `<path class="comet comet-head" pathLength="1000" d="${d}"/>`
+  ).join("");
   $("card-svg").setAttribute("viewBox", `0 0 ${w} ${h}`);
-  const comet = racing
-    ? `<path class="comet comet-glow" pathLength="1000" d="${outline}"/><path class="comet comet-tail" pathLength="1000" d="${outline}"/><path class="comet comet-head" pathLength="1000" d="${outline}"/>`
-    : "";
-  $("card-svg").innerHTML = `<path class="outline" pathLength="1000" d="${outline}"/>${comet}${dot}`;
+  $("card-svg").innerHTML = `${matesSvg}<path class="outline${quiet ? " quiet" : ""}" d="${outline}"/>${seam}${comet}${dot}`;
 }
 
 function screenOfKm(x, y, v) {
