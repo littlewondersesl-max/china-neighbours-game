@@ -1,6 +1,5 @@
 import { makeLaea, buildMesh, boundsOfFeature, pairKey, screenPath, linePath, absLinePath } from "./geo.js";
 import { createView } from "./gl.js";
-import { createTerrain } from "./terrain.js";
 import { LANGS, pick, line, htmlStack, esc, getLang, setLang, onLangChange, activeLangs, langButtonText, scriptLang } from "./i18n.js";
 
 const SIZE_TOL = 0.07;
@@ -133,7 +132,6 @@ let mainGL = null;
 let cardGL = null;
 let thumbGL = null;
 let reliefImage = null;
-let terrainLod = null;
 const thumbCache = new Map();
 
 const d3 = globalThis.d3;
@@ -192,7 +190,6 @@ async function init() {
     mainGL.setRelief(relief);
     cardGL.setRelief(relief);
     thumbGL.setRelief(relief);
-    terrainLod = createTerrain(relief, onTerrain);
     bind();
     const params = new URLSearchParams(location.search);
     const jump = (params.get("centre") || "").toUpperCase();
@@ -910,13 +907,10 @@ function thumbHtml(iso) {
     originY: mesh.cy - (size * kmpp) / 2,
   };
   thumbGL.resize(size, size);
-  const terrainReq = meshTerrainRequest(mesh, kmpp);
-  const sharp = !!(terrainLod && terrainReq && terrainLod.covers(terrainReq, 512));
-  if (terrainLod) terrainLod.update(thumbGL, terrainReq, { snap: true, maxPx: 512 });
   thumbGL.drawPieces([{ mesh, cx: mesh.cx, cy: mesh.cy, scale: 1 }], thumbView, { shadow: false });
   const url = thumbGL.gl.canvas.toDataURL("image/png");
   const outline = screenPath(mesh.rings, { cx: mesh.cx, cy: mesh.cy, scale: 1 }, thumbView);
-  const html = `<span class="thumb"><img alt="" data-detail="${sharp ? "1" : "0"}" src="${url}"><svg viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${outline}"/></svg></span>`;
+  const html = `<span class="thumb"><img alt="" src="${url}"><svg viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${outline}"/></svg></span>`;
   thumbCache.set(iso, html);
   return html;
 }
@@ -1027,7 +1021,6 @@ function draw() {
   view.width = w;
   view.height = h;
   mainGL.resize(w, h);
-  if (terrainLod) terrainLod.update(mainGL, terrainRequest(), { maxPx: 4096 });
   if (mode === "puzzle" && proj) {
     const order = drawOrder();
     mainGL.drawPieces(order.map((p) => ({
@@ -1051,129 +1044,6 @@ function draw() {
 
 function globeRadius() {
   return Math.min(view.width, view.height) * globe.mul;
-}
-
-function onTerrain(fresh) {
-  requestDraw();
-  if (cardsOpen && cardIso && cardIndex !== 1) drawCardShape(cardIso, false);
-  if (fresh) refreshTerrainThumbs();
-}
-
-function refreshTerrainThumbs() {
-  document.querySelectorAll(".tray-tile").forEach((el) => {
-    const iso = el.dataset.code;
-    const img = el.querySelector("img");
-    if (!iso || !img || img.dataset.detail === "1") return;
-    const mesh = meshes.get(iso);
-    if (!mesh) return;
-    const req = meshTerrainRequest(mesh, thumbKm(mesh));
-    if (!req || !terrainLod.covers(req, 512)) return;
-    thumbCache.delete(iso);
-    const html = thumbHtml(iso);
-    const holder = document.createElement("div");
-    holder.innerHTML = html;
-    const freshImg = holder.querySelector("img");
-    if (!freshImg) return;
-    img.src = freshImg.src;
-    img.dataset.detail = freshImg.dataset.detail || "0";
-  });
-}
-
-function thumbKm(mesh) {
-  const size = 256;
-  const pad = 0.86;
-  return Math.max(mesh.width / (size * pad), mesh.height / (size * pad)) || 1;
-}
-
-function meshTerrainRequest(mesh, kmPerPx) {
-  const box = boundsOfFeature(mesh.feature);
-  const lonSpan = box[2] - box[0];
-  const latSpan = box[3] - box[1];
-  if (lonSpan > 80 || latSpan > 60 || lonSpan < 0.05) return null;
-  return {
-    west: box[0] - lonSpan * 0.08,
-    south: box[1] - latSpan * 0.08,
-    east: box[2] + lonSpan * 0.08,
-    north: box[3] + latSpan * 0.08,
-    kmPerPx,
-  };
-}
-
-function terrainRequest() {
-  if (mode === "puzzle" && proj) return puzzleTerrainRequest();
-  if (mode === "world" || mode === "asia") return globeTerrainRequest();
-  return null;
-}
-
-function puzzleTerrainRequest() {
-  const w = view.width;
-  const h = view.height;
-  const pts = [];
-  const spots = [
-    [0, 0], [w, 0], [w, h], [0, h],
-    [w / 2, h / 2], [w / 2, 0], [w / 2, h], [0, h / 2], [w, h / 2],
-  ];
-  for (const [sx, sy] of spots) {
-    const geo = pxToGeo(sx, sy);
-    const ll = proj.inverse(geo.gx, geo.gy);
-    if (!ll || !Number.isFinite(ll[0]) || !Number.isFinite(ll[1])) continue;
-    pts.push(ll);
-  }
-  if (pts.length < 4) return null;
-  return requestFromPoints(pts, view.kmPerPx);
-}
-
-function globeTerrainRequest() {
-  const w = view.width;
-  const h = view.height;
-  const radius = Math.min(w, h) * globe.mul;
-  if (radius < 24) return null;
-  const km = 6371 / radius;
-  if (km > 5.2) return null;
-  const cx = w / 2;
-  const cy = h / 2;
-  const reach = Math.min(radius * 0.9, Math.hypot(w, h) * 0.5);
-  const pts = [];
-  const center = invertGlobe(cx, cy);
-  if (!center) return null;
-  pts.push(center);
-  let misses = 0;
-  for (let i = 0; i < 16; i++) {
-    const angle = (i / 16) * Math.PI * 2;
-    const hit = invertGlobe(cx + Math.cos(angle) * reach, cy + Math.sin(angle) * reach);
-    if (hit) pts.push(hit);
-    else misses += 1;
-  }
-  if (misses > 4) return null;
-  const req = requestFromPoints(pts, km);
-  if (!req || req.east - req.west > 75 || req.north - req.south > 65) return null;
-  return req;
-}
-
-function requestFromPoints(pts, kmPerPx) {
-  let south = 90;
-  let north = -90;
-  const lons = pts.map((p) => p[0]);
-  let west = Math.min(...lons);
-  let east = Math.max(...lons);
-  if (east - west > 180) {
-    const shifted = lons.map((lon) => (lon < 0 ? lon + 360 : lon));
-    west = Math.min(...shifted);
-    east = Math.max(...shifted);
-  }
-  for (const p of pts) {
-    south = Math.min(south, p[1]);
-    north = Math.max(north, p[1]);
-  }
-  const lonPad = Math.max(0.35, (east - west) * 0.12);
-  const latPad = Math.max(0.25, (north - south) * 0.12);
-  return {
-    west: west - lonPad,
-    south: south - latPad,
-    east: east + lonPad,
-    north: north + latPad,
-    kmPerPx,
-  };
 }
 
 function drawGlobeLines(radius) {
@@ -2290,7 +2160,6 @@ function drawCardShape(iso, racing) {
   };
   const piece = { cx: mesh.cx, cy: mesh.cy, scale: 1 };
   cardGL.resize(w, h);
-  if (terrainLod) terrainLod.update(cardGL, meshTerrainRequest(mesh, kmpp), { maxPx: 1024 });
   cardGL.drawPieces([{ mesh, cx: piece.cx, cy: piece.cy, scale: 1 }], cardView);
   const outline = screenPath(mesh.rings, piece, cardView);
   const card = cards[iso];
@@ -2632,13 +2501,6 @@ window.__game = {
     if (mode !== "puzzle") return false;
     startCoastSplash();
     return splashStart > 0;
-  },
-  terrain(on) {
-    if (!terrainLod) return false;
-    terrainLod.setEnabled(on);
-    requestDraw();
-    if (cardsOpen && cardIso) drawCardShape(cardIso, false);
-    return terrainLod.enabled;
   },
   pick(x, y) {
     const f = globePick(x, y);

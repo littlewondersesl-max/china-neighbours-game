@@ -20,50 +20,11 @@ void main() {
   vLL = aLL;
 }`;
 
-const DETAIL_SRC = `
-uniform sampler2D uDetailA;
-uniform sampler2D uDetailB;
-uniform float uMixA;
-uniform float uMixB;
-uniform float uNewer;
-uniform vec4 uBoundA;
-uniform vec4 uBoundB;
-
-float windowMask(vec4 bound, float mixv, vec2 uv) {
-  float on = step(0.004, mixv) * step(0.05, bound.z) * step(0.05, bound.w);
-  return on * step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
-}
-
-vec2 windowUV(vec4 bound) {
-  float d = vLL.x - bound.x;
-  d += 360.0 * step(d, -0.01);
-  return vec2(d / max(bound.z, 0.0001), (vLL.y - bound.y) / max(bound.w, 0.0001));
-}
-
-vec3 withDetail(vec3 base) {
-  vec2 uvA = windowUV(uBoundA);
-  vec2 uvB = windowUV(uBoundB);
-  float mA = windowMask(uBoundA, uMixA, uvA);
-  float mB = windowMask(uBoundB, uMixB, uvB);
-  vec3 colA = texture2D(uDetailA, clamp(uvA, 0.0, 1.0)).rgb;
-  vec3 colB = texture2D(uDetailB, clamp(uvB, 0.0, 1.0)).rgb;
-  float aNew = step(uNewer, 0.5);
-  float wA = uMixA * mA;
-  float wB = uMixB * mB;
-  vec3 colNew = mix(colB, colA, aNew);
-  vec3 colOld = mix(colA, colB, aNew);
-  float wNew = mix(wB, wA, aNew);
-  float wOld = mix(wA, wB, aNew);
-  return mix(mix(base, colOld, wOld), colNew, wNew);
-}
-`;
-
 const PIECE_FS = `
 precision mediump float;
 uniform sampler2D uTex;
 uniform float uShadow;
 varying vec2 vLL;
-${DETAIL_SRC}
 void main() {
   if (uShadow > 0.5) {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.38);
@@ -71,7 +32,7 @@ void main() {
   }
   float u = fract((vLL.x + 180.0) / 360.0);
   float v = (vLL.y + 90.0) / 180.0;
-  vec3 c = withDetail(texture2D(uTex, vec2(u, v)).rgb);
+  vec3 c = texture2D(uTex, vec2(u, v)).rgb;
   gl_FragColor = vec4(c, 1.0);
 }`;
 
@@ -106,12 +67,11 @@ uniform sampler2D uTex;
 varying vec2 vLL;
 varying float vZ;
 varying vec3 vN;
-${DETAIL_SRC}
 void main() {
   if (vZ < 0.02) discard;
   float u = fract((vLL.x + 180.0) / 360.0);
   float v = (vLL.y + 90.0) / 180.0;
-  vec3 c = withDetail(texture2D(uTex, vec2(u, v)).rgb);
+  vec3 c = texture2D(uTex, vec2(u, v)).rgb;
   vec3 light = normalize(vec3(-0.35, 0.62, 0.70));
   float lam = 0.58 + 0.42 * max(dot(normalize(vN), light), 0.0);
   float rim = smoothstep(0.0, 0.22, vZ);
@@ -199,13 +159,6 @@ export function createView(canvas, options = {}) {
     uRadius: gl.getUniformLocation(globeProg, "uRadius"),
     uSize: gl.getUniformLocation(globeProg, "uSize"),
   };
-  Object.assign(pieceLoc, detailLocations(gl, pieceProg));
-  Object.assign(globeLoc, detailLocations(gl, globeProg));
-  for (const loc of [pieceLoc, globeLoc]) {
-    for (const name of ["uDetailA", "uDetailB", "uMixA", "uMixB", "uNewer", "uBoundA", "uBoundB"]) {
-      if (loc[name] == null) throw new Error("Missing terrain uniform " + name);
-    }
-  }
 
   const sphere = buildSphere();
   const sphereVbo = gl.createBuffer();
@@ -216,39 +169,7 @@ export function createView(canvas, options = {}) {
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, sphere.idx, gl.STATIC_DRAW);
 
   const tex = gl.createTexture();
-  const detailA = makeDetailSlot();
-  const detailB = makeDetailSlot();
-  let newer = 1;
   let ready = false;
-
-  function makeDetailSlot() {
-    const slotTex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, slotTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    return { tex: slotTex, token: 0, mix: 0, west: 0, south: 0, lonSpan: 1, latSpan: 1 };
-  }
-
-  function bindDetail(loc) {
-    gl.uniform1i(loc.uTex, 0);
-    gl.uniform1i(loc.uDetailA, 1);
-    gl.uniform1i(loc.uDetailB, 2);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, detailA.tex);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, detailB.tex);
-    gl.uniform1f(loc.uMixA, detailA.mix);
-    gl.uniform1f(loc.uMixB, detailB.mix);
-    gl.uniform1f(loc.uNewer, newer);
-    gl.uniform4f(loc.uBoundA, detailA.west, detailA.south, detailA.lonSpan, detailA.latSpan);
-    gl.uniform4f(loc.uBoundB, detailB.west, detailB.south, detailB.lonSpan, detailB.latSpan);
-    gl.activeTexture(gl.TEXTURE0);
-  }
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -301,29 +222,6 @@ export function createView(canvas, options = {}) {
     ready = true;
   }
 
-  function uploadDetail(slot, src) {
-    slot.mix = src.mix;
-    slot.west = src.west;
-    slot.south = src.south;
-    slot.lonSpan = src.lonSpan || 1;
-    slot.latSpan = src.latSpan || 1;
-    if (!src.canvas || !src.token || slot.token === src.token) return;
-    gl.bindTexture(gl.TEXTURE_2D, slot.tex);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src.canvas);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    slot.token = src.token;
-  }
-
-  function setTerrain(state) {
-    uploadDetail(detailA, state.a);
-    uploadDetail(detailB, state.b);
-    newer = state.newer;
-  }
-
   function resize(cssW, cssH) {
     const dpr = Math.min(1.5, window.devicePixelRatio || 1);
     const w = Math.max(1, Math.round(cssW * dpr));
@@ -347,7 +245,8 @@ export function createView(canvas, options = {}) {
     gl.uniform2f(pieceLoc.uOrigin, view.originX, view.originY);
     gl.uniform2f(pieceLoc.uSize, view.width, view.height);
     gl.uniform1f(pieceLoc.uKmpp, view.kmPerPx);
-    bindDetail(pieceLoc);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
     const shadow = options.shadow !== false;
     for (const entry of entries) {
       const mesh = entry.mesh;
@@ -380,7 +279,8 @@ export function createView(canvas, options = {}) {
     gl.uniform1f(globeLoc.uLat0, lat0);
     gl.uniform1f(globeLoc.uRadius, radius);
     gl.uniform2f(globeLoc.uSize, width, height);
-    bindDetail(globeLoc);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.bindBuffer(gl.ARRAY_BUFFER, sphereVbo);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereIbo);
     gl.enableVertexAttribArray(globeLoc.aLL);
@@ -388,18 +288,5 @@ export function createView(canvas, options = {}) {
     gl.drawElements(gl.TRIANGLES, sphere.idx.length, gl.UNSIGNED_SHORT, 0);
   }
 
-  return { gl, setRelief, setTerrain, resize, drawPieces, drawGlobe };
-}
-
-function detailLocations(gl, prog) {
-  return {
-    uTex: gl.getUniformLocation(prog, "uTex"),
-    uDetailA: gl.getUniformLocation(prog, "uDetailA"),
-    uDetailB: gl.getUniformLocation(prog, "uDetailB"),
-    uMixA: gl.getUniformLocation(prog, "uMixA"),
-    uMixB: gl.getUniformLocation(prog, "uMixB"),
-    uNewer: gl.getUniformLocation(prog, "uNewer"),
-    uBoundA: gl.getUniformLocation(prog, "uBoundA"),
-    uBoundB: gl.getUniformLocation(prog, "uBoundB"),
-  };
+  return { gl, setRelief, resize, drawPieces, drawGlobe };
 }

@@ -49,7 +49,7 @@ Replace the file (a square picture works best; the page frames it). You do not n
 ## Map notes
 
 - Outlines are Natural Earth 1:10m, drawn as vectors so they stay crisp when you zoom. India’s Andaman and Nicobar Islands are included.
-- Terrain colour is Natural Earth’s shaded relief. Zooming the globe, a continent, or a puzzle fades in sharper ETOPO hillshade for the area on screen (`assets/terrain/`). Borders, rivers, and coastlines stay vectors.
+- Terrain is Natural Earth’s shaded relief, sampled inside each country.
 - Projection is Lambert azimuthal equal-area. The China puzzle stays centred at 40°N, 100°E, as before. Other centres use the same kind of projection, recentred so neighbours are not stretched.
 - Taiwan, Hong Kong, and Macao are drawn as part of China. Cyprus is drawn as one island.
 - A river is drawn only when that river actually crosses from one puzzle country into another.
@@ -63,7 +63,4 @@ Optional. Needs Python, Pillow, Shapely, pyproj, and pyshp, plus the Natural Ear
 python3 tools/build_geo.py
 python3 tools/fetch_cards.py
 python3 tools/fill_gaps.py
-python3 tools/build_terrain.py
 ```
-
-`build_terrain.py` reads ETOPO 2022 (a public-domain elevation model) and writes the zoom tiles. The 60 arc-second grid and the 15 arc-second land tiles download into `/tmp/etopo` and are not part of this repo. See `ATTRIBUTIONS.md`.
