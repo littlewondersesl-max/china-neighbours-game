@@ -199,6 +199,8 @@ function bind() {
   playfield.addEventListener("pointermove", onPointerMove);
   playfield.addEventListener("pointerup", onPointerUp);
   playfield.addEventListener("pointercancel", onPointerUp);
+  window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
   playfield.addEventListener("wheel", onWheel, { passive: false });
   playfield.addEventListener("contextmenu", (e) => e.preventDefault());
   backBtn.addEventListener("click", () => back());
@@ -486,37 +488,44 @@ function back() {
 function animateGlobe() {
   if (globeAnimating) return;
   globeAnimating = true;
-  const step = () => {
-    if (mode === "puzzle") { globeAnimating = false; return; }
-    if (globeAnchor) {
-      globe.mul += (globe.targetMul - globe.mul) * 0.35;
-      holdAnchor(globeAnchor);
-      globe.targetLon = globe.lon0;
-      globe.targetLat = globe.lat0;
-    } else {
-      globe.lon0 += (globe.targetLon - globe.lon0) * 0.16;
-      globe.lat0 += (globe.targetLat - globe.lat0) * 0.16;
-      globe.mul += (globe.targetMul - globe.mul) * 0.16;
-    }
-    requestDraw();
-    const zoomed = globeAnchor
-      ? Math.abs(globe.targetMul - globe.mul) < 0.002
-      : false;
-    const flown = !globeAnchor
-      && Math.abs(globe.targetLon - globe.lon0) < 0.08
-      && Math.abs(globe.targetLat - globe.lat0) < 0.08
-      && Math.abs(globe.targetMul - globe.mul) < 0.004;
-    if (zoomed || flown) {
+  let last = 0;
+  const step = (now) => {
+    try {
+      if (mode === "puzzle") { globeAnimating = false; return; }
+      const dt = last ? Math.min(0.08, (now - last) / 1000) : 0.016;
+      last = now;
+      const k = 1 - Math.exp(-dt / 0.09);
       if (globeAnchor) {
-        globe.mul = globe.targetMul;
+        globe.mul += (globe.targetMul - globe.mul) * k;
         holdAnchor(globeAnchor);
         globe.targetLon = globe.lon0;
         globe.targetLat = globe.lat0;
-        globeAnchor = null;
-        requestDraw();
+      } else {
+        globe.lon0 += (globe.targetLon - globe.lon0) * k;
+        globe.lat0 += (globe.targetLat - globe.lat0) * k;
+        globe.mul += (globe.targetMul - globe.mul) * k;
       }
+      requestDraw();
+      const zoomed = globeAnchor && Math.abs(globe.targetMul - globe.mul) < 0.002;
+      const flown = !globeAnchor
+        && Math.abs(globe.targetLon - globe.lon0) < 0.08
+        && Math.abs(globe.targetLat - globe.lat0) < 0.08
+        && Math.abs(globe.targetMul - globe.mul) < 0.004;
+      if (zoomed || flown) {
+        if (globeAnchor) {
+          globe.mul = globe.targetMul;
+          holdAnchor(globeAnchor);
+          globe.targetLon = globe.lon0;
+          globe.targetLat = globe.lat0;
+          globeAnchor = null;
+          requestDraw();
+        }
+        globeAnimating = false;
+      } else requestAnimationFrame(step);
+    } catch (err) {
       globeAnimating = false;
-    } else requestAnimationFrame(step);
+      console.error(err);
+    }
   };
   requestAnimationFrame(step);
 }
@@ -1430,7 +1439,8 @@ function onWheel(e) {
     requestDraw();
     return;
   }
-  globe.targetMul = clamp(globe.targetMul * factor, GLOBE_MIN_MUL, GLOBE_MAX_MUL);
+  const base = globeAnchor ? globe.targetMul : globe.mul;
+  globe.targetMul = clamp(base * factor, GLOBE_MIN_MUL, GLOBE_MAX_MUL);
   const ll = invertGlobe(p.x, p.y);
   globeAnchor = ll ? { lon: ll[0], lat: ll[1], x: p.x, y: p.y } : null;
   animateGlobe();
@@ -1477,10 +1487,15 @@ function holdAnchor(anchor) {
 function onPointerDown(e) {
   if (e.target.closest("button, a, input, select, label, #lang")) return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  try { playfield.setPointerCapture(e.pointerId); } catch { /* synthetic events have no active pointer */ }
   if (pointers.size >= 2) {
     pinching = true;
     didPinch = true;
-    const pts = [...pointers.values()];
+    globeAnchor = null;
+    globe.targetMul = globe.mul;
+    globe.targetLon = globe.lon0;
+    globe.targetLat = globe.lat0;
+    const pts = [...pointers.values()].slice(-2);
     pinch = {
       dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
       mul: globe.mul,
@@ -1496,7 +1511,7 @@ function onPointerMove(e) {
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (!pinching || pointers.size < 2 || !pinch) return;
   syncViewSize();
-  const pts = [...pointers.values()];
+  const pts = [...pointers.values()].slice(-2);
   const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
   const ratio = clamp(dist / pinch.dist, 0.2, 5);
   const mid = localPoint({ clientX: (pts[0].x + pts[1].x) / 2, clientY: (pts[0].y + pts[1].y) / 2 });
