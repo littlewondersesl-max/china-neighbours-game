@@ -321,23 +321,23 @@ button { font: inherit; cursor: pointer; }
   animation: race 1.85s linear infinite;
 }
 #card-svg .comet-glow {
-  stroke: #67f3ff;
-  stroke-width: 16;
-  stroke-dasharray: 150 850;
-  opacity: 0.55;
-  filter: blur(7px);
+  stroke: #7af6ff;
+  stroke-width: 20;
+  stroke-dasharray: 155 845;
+  opacity: 0.9;
+  filter: blur(5px);
 }
 #card-svg .comet-tail {
-  stroke: #e7fdff;
-  stroke-width: 6.5;
-  stroke-dasharray: 130 870;
-  filter: drop-shadow(0 0 6px #7af6ff);
+  stroke: #f3feff;
+  stroke-width: 9;
+  stroke-dasharray: 140 860;
+  filter: drop-shadow(0 0 7px #7af6ff) drop-shadow(0 0 2px #fff);
 }
 #card-svg .comet-head {
   stroke: #ffffff;
-  stroke-width: 5;
-  stroke-dasharray: 20 980;
-  filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 8px #b8fbff) drop-shadow(0 0 12px #ff5ae0);
+  stroke-width: 6;
+  stroke-dasharray: 26 974;
+  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 10px #d8fbff) drop-shadow(0 0 16px #ff5ae0);
   animation-name: race-head;
 }
 @keyframes race {
@@ -345,8 +345,8 @@ button { font: inherit; cursor: pointer; }
   to { stroke-dashoffset: -1000; }
 }
 @keyframes race-head {
-  from { stroke-dashoffset: -112; }
-  to { stroke-dashoffset: -1112; }
+  from { stroke-dashoffset: -116; }
+  to { stroke-dashoffset: -1116; }
 }
 #card-svg .capital { fill: #e10600; stroke: #fff; stroke-width: 1.5; }
 #card-copy { margin-top: 14px; }
