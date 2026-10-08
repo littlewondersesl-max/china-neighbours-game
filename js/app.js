@@ -18,8 +18,8 @@ const SLOTS = [
   ["landmark", "Famous place", "著名地点"],
   ["dish", "Popular dish", "美食"],
 ];
-const ASIA_LON = 95;
-const ASIA_LAT = 35;
+const BUILD_LABEL = { en: "Build Continents", zh: "拼出大洲" };
+const BUILD_TARGET = { continent: "Asia", en: "Asia", zh: "亚洲", lon: 95, lat: 35 };
 const ALIASES = {
   ARE: ["UAE", "U.A.E.", "Emirates", "the Emirates", "阿拉伯联合酋长国"],
   BGD: ["孟加拉"],
@@ -82,8 +82,8 @@ let guideOpen = false;
 let askMode = null;
 let askIso = null;
 let namedFlash = null;
-let asiaIsos = [];
-let asiaSet = new Set();
+let buildIsos = [];
+let buildSet = new Set();
 let nameIndex = new Map();
 let proj = null;
 let meshes = new Map();
@@ -352,13 +352,13 @@ function normName(raw) {
 }
 
 function indexNames() {
-  asiaIsos = [];
-  asiaSet = new Set();
+  buildIsos = [];
+  buildSet = new Set();
   nameIndex = new Map();
   for (const [iso, feature] of shapeByIso) {
-    if (feature.properties.continent === "Asia") {
-      asiaIsos.push(iso);
-      asiaSet.add(iso);
+    if (feature.properties.continent === BUILD_TARGET.continent) {
+      buildIsos.push(iso);
+      buildSet.add(iso);
     }
     addName(feature.properties.name, iso);
     addName(feature.properties.zh, iso);
@@ -367,7 +367,7 @@ function indexNames() {
     if (!shapeByIso.has(iso)) continue;
     for (const alias of list) addName(alias, iso);
   }
-  asiaIsos.sort();
+  buildIsos.sort();
 }
 
 function addName(raw, iso) {
@@ -382,8 +382,8 @@ function lookupCountry(raw) {
   const iso = nameIndex.get(key);
   if (!iso) return { kind: "unknown" };
   const meta = shapeByIso.get(iso).properties;
-  if (!asiaSet.has(iso)) return { kind: "not-asia", iso, meta };
-  return { kind: "asia", iso, meta };
+  if (!buildSet.has(iso)) return { kind: "outside", iso, meta };
+  return { kind: "build", iso, meta };
 }
 
 function capitalAnswers(iso) {
@@ -400,8 +400,8 @@ function capitalMatches(iso, raw) {
   return capitalAnswers(iso).some((name) => normName(name) === key);
 }
 
-function asiaNeighbours(iso) {
-  return (borders.neighbours[iso] || []).filter((id) => asiaSet.has(id));
+function buildNeighbours(iso) {
+  return (borders.neighbours[iso] || []).filter((id) => buildSet.has(id));
 }
 
 function anchorSet() {
@@ -418,30 +418,30 @@ function anchorSet() {
   for (const iso of capitalRoots) seed(iso);
   while (queue.length) {
     const cur = queue.pop();
-    for (const next of asiaNeighbours(cur)) seed(next);
+    for (const next of buildNeighbours(cur)) seed(next);
   }
   return seen;
 }
 
 function touchesChain(iso) {
   const anchors = anchorSet();
-  return asiaNeighbours(iso).some((id) => anchors.has(id));
+  return buildNeighbours(iso).some((id) => anchors.has(id));
 }
 
 function placedCount() {
   let n = 0;
-  for (const iso of asiaIsos) if (pieces.get(iso)?.locked) n += 1;
+  for (const iso of buildIsos) if (pieces.get(iso)?.locked) n += 1;
   return n;
 }
 
 function startComponent() {
   const seen = new Set();
-  if (!buildStart || !asiaSet.has(buildStart)) return seen;
+  if (!buildStart || !buildSet.has(buildStart)) return seen;
   const queue = [buildStart];
   seen.add(buildStart);
   while (queue.length) {
     const cur = queue.pop();
-    for (const next of asiaNeighbours(cur)) {
+    for (const next of buildNeighbours(cur)) {
       if (seen.has(next)) continue;
       seen.add(next);
       queue.push(next);
@@ -451,7 +451,7 @@ function startComponent() {
 }
 
 function unplacedIsos() {
-  return asiaIsos.filter((iso) => !pieces.get(iso)?.locked);
+  return buildIsos.filter((iso) => !pieces.get(iso)?.locked);
 }
 
 function islandsOnlyLeft() {
@@ -460,7 +460,7 @@ function islandsOnlyLeft() {
     if (!pieces.get(iso)?.locked) return false;
   }
   const left = unplacedIsos();
-  return left.length > 0 && left.every((iso) => asiaNeighbours(iso).length === 0);
+  return left.length > 0 && left.every((iso) => buildNeighbours(iso).length === 0);
 }
 
 function flashTargets() {
@@ -483,7 +483,7 @@ function updateProgress() {
   if (playKind !== "build" || mode !== "puzzle") return;
   const el = $("progress");
   el.hidden = false;
-  el.textContent = `${placedCount()} / ${asiaIsos.length} placed · 已放好`;
+  el.textContent = `${placedCount()} / ${buildIsos.length} placed · 已放好`;
   syncIslandNote();
 }
 
@@ -580,8 +580,8 @@ function enterBuild(iso) {
   centreIso = iso;
   setMode("puzzle");
   appEl.classList.add("one-tray");
-  proj = makeLaea(ASIA_LON, ASIA_LAT);
-  const need = asiaIsos.slice();
+  proj = makeLaea(BUILD_TARGET.lon, BUILD_TARGET.lat);
+  const need = buildIsos.slice();
   meshes = new Map();
   thumbCache.clear();
   for (const id of need) {
@@ -591,7 +591,7 @@ function enterBuild(iso) {
   seamKm = new Map();
   for (const [key, lines] of Object.entries(borders.seams)) {
     const [a, b] = key.split("|");
-    if (!asiaSet.has(a) || !asiaSet.has(b)) continue;
+    if (!buildSet.has(a) || !buildSet.has(b)) continue;
     const projected = [];
     for (const line of lines) {
       const out = [];
@@ -612,11 +612,11 @@ function enterBuild(iso) {
   buildTrays({ top: rest, bottom: [] }, true);
   buildGuide(need);
   const meta = shapeByIso.get(iso).properties;
-  titleEl.innerHTML = `<b>Build Asia</b><span>拼出亚洲 · 从${meta.zh}开始</span>`;
-  hintEl.textContent = asiaNeighbours(iso).length
+  titleEl.innerHTML = `<b>${BUILD_LABEL.en}</b><span>${BUILD_TARGET.en} · ${BUILD_TARGET.zh}</span>`;
+  hintEl.textContent = buildNeighbours(iso).length
     ? "A shape locks only when it touches the chain · or enter a name and its capital · 形状要连上已放好的国家，或输入国名和首都"
     : `${meta.name} is an island, so type a name and a capital to place the next country. · ${meta.zh}是岛国，请输入国名和首都来放置下一个国家。`;
-  document.title = "Build Asia · 拼出亚洲";
+  document.title = `${BUILD_LABEL.en} · ${BUILD_LABEL.zh}`;
   updateProgress();
   requestAnimationFrame(() => {
     fitIds(need, 0.08);
@@ -1177,7 +1177,7 @@ function trySnap(piece) {
 function playWeld(iso, done) {
   const lines = [];
   const pool = playKind === "build"
-    ? asiaNeighbours(iso)
+    ? buildNeighbours(iso)
     : [centreIso, ...(borders.neighbours[centreIso] || [])];
   const mates = pool.filter((id) => id !== iso && pieces.get(id)?.locked);
   for (const other of mates) {
@@ -1211,7 +1211,7 @@ function onWheel(e) {
 }
 
 function allLocked() {
-  if (playKind === "build") return asiaIsos.every((iso) => pieces.get(iso)?.locked);
+  if (playKind === "build") return buildIsos.every((iso) => pieces.get(iso)?.locked);
   if (!centreIso) return false;
   return borders.neighbours[centreIso].every((iso) => pieces.get(iso)?.locked);
 }
@@ -1291,7 +1291,7 @@ function renderCard() {
 }
 
 function buildBorderSentence(iso, meta) {
-  const all = asiaNeighbours(iso);
+  const all = buildNeighbours(iso);
   const mates = all.filter((id) => pieces.get(id)?.locked);
   if (!all.length) {
     return {
@@ -1421,8 +1421,8 @@ function showReward() {
 function makeRewardSlides() {
   if (playKind === "build") {
     return [
-      { en: "You built the whole of Asia.", zh: "你拼出了整个亚洲。" },
-      { en: "All 48 countries are in their real places.", zh: "48 个国家都在真正的位置上。" },
+      { en: `You built the whole of ${BUILD_TARGET.en}.`, zh: `你拼出了整个${BUILD_TARGET.zh}。` },
+      { en: `All ${buildIsos.length} countries are in their real places.`, zh: `${buildIsos.length} 个国家都在真正的位置上。` },
       { en: "Islands and neighbours, together on one map.", zh: "岛屿和邻国，都在同一幅地图上。" },
       { en: "You placed every piece.", zh: "你把每一块都放好了。", end: true },
     ];
@@ -1499,8 +1499,8 @@ function openAsk(next) {
   $("ask-input").value = "";
   $("ask-msg").hidden = true;
   if (next === "start") {
-    $("ask-title").textContent = "Build Asia · 拼出亚洲";
-    $("ask-help").textContent = "Type any Asian country to begin, in English or Chinese. · 用英文或中文输入任何一个亚洲国家。";
+    $("ask-title").textContent = `${BUILD_LABEL.en} · ${BUILD_LABEL.zh}`;
+    $("ask-help").textContent = `Type any ${BUILD_TARGET.en} country to begin, in English or Chinese. · 用英文或中文输入任何一个${BUILD_TARGET.zh}国家。`;
   } else if (next === "name") {
     $("ask-title").textContent = "Which country? · 哪个国家？";
     $("ask-help").textContent = "Type its name. Next you will name its capital. · 先写国名，下一步写首都。";
@@ -1525,7 +1525,7 @@ function closeAsk() {
 function onAskInput() {
   if (askMode !== "name") return;
   const found = lookupCountry($("ask-input").value);
-  const next = found.kind === "asia" && !pieces.get(found.iso)?.locked ? found.iso : null;
+  const next = found.kind === "build" && !pieces.get(found.iso)?.locked ? found.iso : null;
   if (next === namedFlash) return;
   namedFlash = next;
   requestDraw();
@@ -1559,8 +1559,8 @@ function onAskSubmit(e) {
     setAskMsg("I can't find that one. Try the English or Chinese name.", "没找到。试试英文或中文名字。");
     return;
   }
-  if (found.kind === "not-asia") {
-    setAskMsg("That country is not on this Asia map.", "这个国家不在这幅亚洲地图上。");
+  if (found.kind === "outside") {
+    setAskMsg(`That country is not on this ${BUILD_TARGET.en} map.`, `这个国家不在这幅${BUILD_TARGET.zh}地图上。`);
     return;
   }
   if (askMode === "start") {
@@ -1620,7 +1620,7 @@ window.__game = {
   get guideOpen() { return guideOpen; },
   get progress() {
     if (playKind !== "build") return null;
-    return { placed: placedCount(), total: asiaIsos.length };
+    return { placed: placedCount(), total: buildIsos.length };
   },
   go: (iso) => {
     const id = String(iso || "").toUpperCase();
@@ -1628,18 +1628,18 @@ window.__game = {
   },
   build(name) {
     const found = lookupCountry(name);
-    if (found.kind !== "asia") return found;
+    if (found.kind !== "build") return found;
     enterBuild(found.iso);
-    return { ok: true, iso: found.iso, placed: placedCount(), total: asiaIsos.length };
+    return { ok: true, iso: found.iso, placed: placedCount(), total: buildIsos.length };
   },
   answer(name, capital) {
     if (playKind !== "build") return { ok: false, reason: "mode" };
     const found = lookupCountry(name);
-    if (found.kind !== "asia") return { ok: false, ...found };
+    if (found.kind !== "build") return { ok: false, ...found };
     if (pieces.get(found.iso)?.locked) return { ok: false, reason: "placed", iso: found.iso };
     if (!capitalMatches(found.iso, capital)) return { ok: false, reason: "capital", iso: found.iso };
     placeByCapital(found.iso);
-    return { ok: true, iso: found.iso, placed: placedCount(), total: asiaIsos.length, locked: true };
+    return { ok: true, iso: found.iso, placed: placedCount(), total: buildIsos.length, locked: true };
   },
   chain(iso) {
     const id = String(iso || "").toUpperCase();
@@ -1661,15 +1661,15 @@ window.__game = {
   },
   placeLand() {
     if (playKind !== "build") return { ok: false };
-    for (const iso of asiaIsos) {
-      if (!asiaNeighbours(iso).length || pieces.get(iso)?.locked) continue;
+    for (const iso of buildIsos) {
+      if (!buildNeighbours(iso).length || pieces.get(iso)?.locked) continue;
       const mesh = meshes.get(iso);
       pieces.set(iso, { iso, cx: mesh.cx, cy: mesh.cy, scale: 1, locked: true, fixed: iso === buildStart });
       markTray(iso, true);
     }
     updateProgress();
     requestDraw();
-    return { ok: true, placed: placedCount(), total: asiaIsos.length, flashing: [...flashTargets()], note: !$("island-note").hidden };
+    return { ok: true, placed: placedCount(), total: buildIsos.length, flashing: [...flashTargets()], note: !$("island-note").hidden };
   },
   frame(iso) {
     const id = String(iso || "").toUpperCase();
