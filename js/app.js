@@ -798,7 +798,7 @@ function playWeld(iso, done) {
     weldEl.innerHTML = "";
     busy = false;
     done();
-  }, 1300);
+  }, 1800);
 }
 
 function onWheel(e) {
@@ -943,9 +943,11 @@ function drawCardShape(iso, racing) {
       dot = `<circle class="capital" cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="5.5"/>`;
     }
   }
-  const cls = racing ? "outline runner" : "outline";
   $("card-svg").setAttribute("viewBox", `0 0 ${w} ${h}`);
-  $("card-svg").innerHTML = `<path class="${cls}" pathLength="1000" d="${outline}"/>${dot}`;
+  const comet = racing
+    ? `<path class="comet comet-glow" pathLength="1000" d="${outline}"/><path class="comet comet-tail" pathLength="1000" d="${outline}"/><path class="comet comet-head" pathLength="1000" d="${outline}"/>`
+    : "";
+  $("card-svg").innerHTML = `<path class="outline" pathLength="1000" d="${outline}"/>${comet}${dot}`;
 }
 
 function screenOfKm(x, y, v) {
@@ -1085,6 +1087,32 @@ window.__game = {
     return { iso: f.properties.iso, name: f.properties.name, continent: f.properties.continent };
   },
   view,
+  // Frame the shared border, then place the neighbour so the weld is easy to see.
+  focusSeam(iso) {
+    if (mode !== "puzzle" || !centreIso) return false;
+    const segs = seamKm.get(pairKey(String(iso || "").toUpperCase(), centreIso));
+    if (!segs || !segs.length) return false;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const line of segs) {
+      for (const p of line) {
+        if (p[0] < minX) minX = p[0];
+        if (p[1] < minY) minY = p[1];
+        if (p[0] > maxX) maxX = p[0];
+        if (p[1] > maxY) maxY = p[1];
+      }
+    }
+    const w = playfield.clientWidth;
+    const h = playfield.clientHeight;
+    const pad = 0.16;
+    const kmpp = Math.max((maxX - minX) / (w * (1 - 2 * pad)), (maxY - minY) / (h * (1 - 2 * pad))) || 1;
+    view.kmPerPx = clamp(kmpp, MIN_KMPP, MAX_KMPP);
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    view.originX = cx - (w * view.kmPerPx) / 2;
+    view.originY = cy - (h * view.kmPerPx) / 2;
+    requestDraw();
+    return true;
+  },
   // Place a neighbour within the snap tolerance so the weld runs, then the card opens.
   snap(iso) {
     if (mode !== "puzzle" || !meshes.has(iso) || iso === centreIso) return;
