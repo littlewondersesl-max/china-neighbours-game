@@ -554,8 +554,7 @@ function enterBuild(iso) {
   const startMesh = meshes.get(iso);
   pieces.set(iso, { iso, cx: startMesh.cx, cy: startMesh.cy, scale: 1, locked: true, fixed: true });
   selected = null;
-  const rest = need.filter((id) => id !== iso);
-  rest.sort((a, b) => shapeByIso.get(a).properties.label[0] - shapeByIso.get(b).properties.label[0]);
+  const rest = shuffle(need.filter((id) => id !== iso));
   buildTrays({ top: rest, bottom: [] }, true);
   buildGuide(need);
   const meta = shapeByIso.get(iso).properties;
@@ -586,26 +585,36 @@ function bearing(a, b) {
   return Math.atan2(y, x);
 }
 
+function shuffle(list) {
+  const arr = list.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const swap = arr[i];
+    arr[i] = arr[j];
+    arr[j] = swap;
+  }
+  return arr;
+}
+
 function thumbHtml(iso) {
   const cached = thumbCache.get(iso);
   if (cached) return cached;
   const mesh = meshes.get(iso);
-  const tw = 220;
-  const th = 120;
+  const size = 256;
   const pad = 0.86;
-  const kmpp = Math.max(mesh.width / (tw * pad), mesh.height / (th * pad)) || 1;
+  const kmpp = Math.max(mesh.width / (size * pad), mesh.height / (size * pad)) || 1;
   const thumbView = {
-    width: tw,
-    height: th,
+    width: size,
+    height: size,
     kmPerPx: kmpp,
-    originX: mesh.cx - (tw * kmpp) / 2,
-    originY: mesh.cy - (th * kmpp) / 2,
+    originX: mesh.cx - (size * kmpp) / 2,
+    originY: mesh.cy - (size * kmpp) / 2,
   };
-  thumbGL.resize(tw, th);
+  thumbGL.resize(size, size);
   thumbGL.drawPieces([{ mesh, cx: mesh.cx, cy: mesh.cy, scale: 1 }], thumbView, { shadow: false });
   const url = thumbGL.gl.canvas.toDataURL("image/png");
   const outline = screenPath(mesh.rings, { cx: mesh.cx, cy: mesh.cy, scale: 1 }, thumbView);
-  const html = `<span class="thumb"><img alt="" src="${url}"><svg viewBox="0 0 ${tw} ${th}" aria-hidden="true"><path d="${outline}"/></svg></span>`;
+  const html = `<span class="thumb"><img alt="" src="${url}"><svg viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${outline}"/></svg></span>`;
   thumbCache.set(iso, html);
   return html;
 }
@@ -1210,8 +1219,8 @@ function buildBorderSentence(iso, meta) {
   const mates = all.filter((id) => pieces.get(id)?.locked);
   if (!all.length) {
     return {
-      en: `${meta.name} has no land neighbours.`,
-      zh: `${meta.zh}没有陆地邻国。`,
+      en: `${meta.name} is an island country with no land borders.`,
+      zh: `${meta.zh}是岛国，没有陆地边界。`,
     };
   }
   if (!mates.length) {

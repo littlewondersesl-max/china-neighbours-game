@@ -256,3 +256,33 @@ Flags are national flags from Wikimedia Commons (public domain or CC BY / CC BY-
 | `assets/flags/yem.svg` | flag: Flag of Yemen.svg | Nightstallion et al., see File history below for details. | Public domain | https://commons.wikimedia.org/wiki/File:Flag_of_Yemen.svg |
 | `assets/flags/omn.svg` | flag: Flag of Oman (3-2).svg | Sangjinhwa | Public domain | https://commons.wikimedia.org/wiki/File:Flag_of_Oman_(3-2).svg |
 | `assets/cards/npl/animal.jpg` | animal: Cow (Fleckvieh breed) Oeschinensee Slaunger 2009-07-07.jpg | Kim Hansen | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Cow_(Fleckvieh_breed)_Oeschinensee_Slaunger_2009-07-07.jpg |
+| `assets/cards/jpn/animal.jpg` | animal: Kopfstudie eines Japanmakaken (Macaca fuscata) im Jigokudani Yaen Kōen, Japan.jpg | Frank Schulenburg | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Kopfstudie_eines_Japanmakaken_%28Macaca_fuscata%29_im_Jigokudani_Yaen_K%C5%8Den%2C_Japan.jpg |
+| `assets/cards/jpn/currency.jpg` | currency: 500 yen bicolor clad coin obverse.jpg | Heavy Frisker | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:500_yen_bicolor_clad_coin_obverse.jpg |
+| `assets/cards/jpn/landmark.jpg` | landmark: Mount Fuji from Lake Kawaguchi 20170206.jpg | Suicasmo | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Mount_Fuji_from_Lake_Kawaguchi_20170206.jpg |
+| `assets/cards/jpn/dish.jpg` | dish: Shoyu Ramen.jpg | Guilhem Vellut | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Shoyu_Ramen.jpg |
+| `assets/cards/lka/animal.jpg` | animal: Sri Lankan Elephant (Elephas maximus maximus).jpg | Senthiaathavan | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Sri_Lankan_Elephant_%28Elephas_maximus_maximus%29.jpg |
+| `assets/cards/lka/currency.jpg` | currency: Sri Lankan five rupee coin.jpg | AKS.9955 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3ASri_Lankan_five_rupee_coin.jpg |
+| `assets/cards/lka/landmark.jpg` | landmark: Sigiriya.jpg | Bernard Gagnon | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File%3ASigiriya.jpg |
+| `assets/cards/lka/dish.jpg` | dish: Sri Lankan Rice and Curry.jpg | Lankan Foodie | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3ASri_Lankan_Rice_and_Curry.jpg |
+| `assets/cards/phl/animal.jpg` | animal: Monkey-Eating Eagle (Philippine Eagle).jpg | Julan Shirwod Nueva | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3AMonkey-Eating_Eagle_%28Philippine_Eagle%29.jpg |
+| `assets/cards/phl/currency.jpg` | currency: Philippines New Generation 1 peso coin reverse.png | Itsquietuptown | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3APhilippines_New_Generation_1_peso_coin_reverse.png |
+| `assets/cards/phl/landmark.jpg` | landmark: Chocolate Hills Carmen Bohol 2019.jpg | Wolfgang Hägele | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3AChocolate_Hills_Carmen_Bohol_2019.jpg |
+| `assets/cards/phl/dish.jpg` | dish: Chicken adobo.jpg | dbgg1979 on flickr | CC BY 2.0 | https://commons.wikimedia.org/wiki/File%3AChicken_adobo.jpg |
+| `assets/cards/sgp/animal.jpg` | animal: Smooth Coated Otter 1.jpg | Red Eyes Black Dragon 92 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3ASmooth_Coated_Otter_1.jpg |
+| `assets/cards/sgp/currency.jpg` | currency: 10 dollars of Singapore - ASEAN 10th Anniversary 1977.png | Windrain | CC0 | https://commons.wikimedia.org/wiki/File%3A10_dollars_of_Singapore_-_ASEAN_10th_Anniversary_1977.png |
+| `assets/cards/sgp/landmark.jpg` | landmark: Supertree Grove, Gardens by the Bay, Singapore1.jpg | Mustang Joe | CC0 | https://commons.wikimedia.org/wiki/File%3ASupertree_Grove%2C_Gardens_by_the_Bay%2C_Singapore1.jpg |
+| `assets/cards/sgp/dish.jpg` | dish: Hainanese chicken rice in Singapore.jpg | Pauloleong2002 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3AHainanese_chicken_rice_in_Singapore.jpg |
+| `assets/cards/cyp/animal.jpg` | animal: Cyprus mouflon (Ovis gmelini ophion).jpg | Charles J. Sharp | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3ACyprus_mouflon_%28Ovis_gmelini_ophion%29.jpg |
+| `assets/cards/cyp/currency.jpg` | currency: 1 Euro, Cyprus.jpg | Unknown authorUnknown author | CC BY 4.0 | https://commons.wikimedia.org/wiki/File%3A1_Euro%2C_Cyprus.jpg |
+| `assets/cards/cyp/landmark.jpg` | landmark: Kourion Archaeological Site Cyprus.jpg | Salwa Farwaneh Dameh | CC0 | https://commons.wikimedia.org/wiki/File%3AKourion_Archaeological_Site_Cyprus.jpg |
+| `assets/cards/cyp/dish.jpg` | dish: Grilled haloumi cheese in Cyprus.JPG | Anatoliy Smaga | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3AGrilled_haloumi_cheese_in_Cyprus.JPG |
+| `assets/cards/bhr/animal.jpg` | animal: White-eared bulbul (Pycnonotus leucotis leucotis).jpg | Charles J. Sharp | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3AWhite-eared_bulbul_%28Pycnonotus_leucotis_leucotis%29.jpg |
+| `assets/cards/bhr/currency.jpg` | currency: 500 Fils of Bahrain - Isa bin Salman (Isa Town) - 1968.jpg | Windrain | CC0 | https://commons.wikimedia.org/wiki/File%3A500_Fils_of_Bahrain_-_Isa_bin_Salman_%28Isa_Town%29_-_1968.jpg |
+| `assets/cards/bhr/landmark.jpg` | landmark: Bahrain Fort March 2015.JPG | Martin Falbisoner | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3ABahrain_Fort_March_2015.JPG |
+| `assets/cards/bhr/dish.jpg` | dish: Balaleet 2019.jpg | Droodkin | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File%3ABalaleet_2019.jpg |
+| `assets/flags/jpn.svg` | flag: Flag of Japan.svg | Various | Public domain | https://commons.wikimedia.org/wiki/File%3AFlag_of_Japan.svg |
+| `assets/flags/lka.svg` | flag: Flag of Sri Lanka.svg | Original: Sri Lanka Vectorization: Zscout370, Mike Rohsopht | Public domain | https://commons.wikimedia.org/wiki/File%3AFlag_of_Sri_Lanka.svg |
+| `assets/flags/phl.svg` | flag: Flag of the Philippines.svg | See File history below for details. | Public domain | https://commons.wikimedia.org/wiki/File%3AFlag_of_the_Philippines.svg |
+| `assets/flags/sgp.svg` | flag: Flag of Singapore.svg | Original: Government of Singapore Vector: Zscout370 | Public domain | https://commons.wikimedia.org/wiki/File%3AFlag_of_Singapore.svg |
+| `assets/flags/cyp.svg` | flag: Flag of Cyprus.svg | İsmet Güney, SVG by User:Vzb83~commonswiki | Public domain | https://commons.wikimedia.org/wiki/File%3AFlag_of_Cyprus.svg |
+| `assets/flags/bhr.svg` | flag: Flag of Bahrain.svg | Source: Drawn by SKopp, rewritten by Zscout370 | Public domain | https://commons.wikimedia.org/wiki/File%3AFlag_of_Bahrain.svg |

@@ -2020,5 +2020,233 @@
       "landmark": "assets/cards/yem/landmark.jpg",
       "dish": "assets/cards/yem/dish.jpg"
     }
+  },
+  "BHR": {
+    "capital": {
+      "en": "Manama",
+      "zh": "麦纳麦",
+      "lon": 50.586,
+      "lat": 26.223
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Manama. It is in the north of Bahrain.",
+      "zh": "首都是麦纳麦，位于巴林北部。"
+    },
+    "animal": {
+      "en": "White-eared bulbul",
+      "zh": "白耳鹎"
+    },
+    "currency": {
+      "en": "Dinar",
+      "zh": "第纳尔"
+    },
+    "landmark": {
+      "en": "Bahrain Fort",
+      "zh": "巴林堡"
+    },
+    "dish": {
+      "en": "Balaleet",
+      "zh": "甜蛋面"
+    },
+    "images": {
+      "animal": "assets/cards/bhr/animal.jpg",
+      "currency": "assets/cards/bhr/currency.jpg",
+      "landmark": "assets/cards/bhr/landmark.jpg",
+      "dish": "assets/cards/bhr/dish.jpg"
+    }
+  },
+  "CYP": {
+    "capital": {
+      "en": "Nicosia",
+      "zh": "尼科西亚",
+      "lon": 33.382,
+      "lat": 35.186
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Nicosia. It is near the centre of Cyprus.",
+      "zh": "首都是尼科西亚，位于塞浦路斯中部。"
+    },
+    "animal": {
+      "en": "Cyprus mouflon",
+      "zh": "塞浦路斯野羊"
+    },
+    "currency": {
+      "en": "Euro",
+      "zh": "欧元"
+    },
+    "landmark": {
+      "en": "Kourion",
+      "zh": "库里翁"
+    },
+    "dish": {
+      "en": "Halloumi",
+      "zh": "哈卢米"
+    },
+    "images": {
+      "animal": "assets/cards/cyp/animal.jpg",
+      "currency": "assets/cards/cyp/currency.jpg",
+      "landmark": "assets/cards/cyp/landmark.jpg",
+      "dish": "assets/cards/cyp/dish.jpg"
+    }
+  },
+  "JPN": {
+    "capital": {
+      "en": "Tokyo",
+      "zh": "东京",
+      "lon": 139.692,
+      "lat": 35.69
+    },
+    "where": {
+      "en": "on the east coast",
+      "zh": "东岸"
+    },
+    "blurb": {
+      "en": "The capital is Tokyo. It is on the east coast of Japan.",
+      "zh": "首都是东京，位于日本东岸。"
+    },
+    "animal": {
+      "en": "Japanese macaque",
+      "zh": "日本猕猴"
+    },
+    "currency": {
+      "en": "Yen",
+      "zh": "日元"
+    },
+    "landmark": {
+      "en": "Mount Fuji",
+      "zh": "富士山"
+    },
+    "dish": {
+      "en": "Ramen",
+      "zh": "拉面"
+    },
+    "images": {
+      "animal": "assets/cards/jpn/animal.jpg",
+      "currency": "assets/cards/jpn/currency.jpg",
+      "landmark": "assets/cards/jpn/landmark.jpg",
+      "dish": "assets/cards/jpn/dish.jpg"
+    }
+  },
+  "LKA": {
+    "capital": {
+      "en": "Sri Jayewardenepura Kotte",
+      "zh": "斯里贾亚瓦德纳普拉科特",
+      "lon": 79.918,
+      "lat": 6.894
+    },
+    "where": {
+      "en": "in the southwest",
+      "zh": "西南部"
+    },
+    "blurb": {
+      "en": "The capital is Sri Jayewardenepura Kotte. It is in the southwest of Sri Lanka.",
+      "zh": "首都是斯里贾亚瓦德纳普拉科特，位于斯里兰卡西南部。"
+    },
+    "animal": {
+      "en": "Sri Lankan elephant",
+      "zh": "斯里兰卡象"
+    },
+    "currency": {
+      "en": "Rupee",
+      "zh": "卢比"
+    },
+    "landmark": {
+      "en": "Sigiriya",
+      "zh": "狮子岩"
+    },
+    "dish": {
+      "en": "Rice and curry",
+      "zh": "咖喱饭"
+    },
+    "images": {
+      "animal": "assets/cards/lka/animal.jpg",
+      "currency": "assets/cards/lka/currency.jpg",
+      "landmark": "assets/cards/lka/landmark.jpg",
+      "dish": "assets/cards/lka/dish.jpg"
+    }
+  },
+  "PHL": {
+    "capital": {
+      "en": "Manila",
+      "zh": "马尼拉",
+      "lon": 120.984,
+      "lat": 14.599
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Manila. It is in the west of the Philippines.",
+      "zh": "首都是马尼拉，位于菲律宾西部。"
+    },
+    "animal": {
+      "en": "Philippine eagle",
+      "zh": "菲律宾雕"
+    },
+    "currency": {
+      "en": "Peso",
+      "zh": "比索"
+    },
+    "landmark": {
+      "en": "Chocolate Hills",
+      "zh": "巧克力山"
+    },
+    "dish": {
+      "en": "Adobo",
+      "zh": "阿多博"
+    },
+    "images": {
+      "animal": "assets/cards/phl/animal.jpg",
+      "currency": "assets/cards/phl/currency.jpg",
+      "landmark": "assets/cards/phl/landmark.jpg",
+      "dish": "assets/cards/phl/dish.jpg"
+    }
+  },
+  "SGP": {
+    "capital": {
+      "en": "Singapore",
+      "zh": "新加坡",
+      "lon": 103.82,
+      "lat": 1.352
+    },
+    "where": {
+      "en": "a city-state",
+      "zh": "城市国家"
+    },
+    "blurb": {
+      "en": "The capital is Singapore. The whole country is one city.",
+      "zh": "首都是新加坡，整个国家就是一座城市。"
+    },
+    "animal": {
+      "en": "Smooth-coated otter",
+      "zh": "江獭"
+    },
+    "currency": {
+      "en": "Singapore dollar",
+      "zh": "新加坡元"
+    },
+    "landmark": {
+      "en": "Gardens by the Bay",
+      "zh": "滨海湾花园"
+    },
+    "dish": {
+      "en": "Hainanese chicken rice",
+      "zh": "海南鸡饭"
+    },
+    "images": {
+      "animal": "assets/cards/sgp/animal.jpg",
+      "currency": "assets/cards/sgp/currency.jpg",
+      "landmark": "assets/cards/sgp/landmark.jpg",
+      "dish": "assets/cards/sgp/dish.jpg"
+    }
   }
 }

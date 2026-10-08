@@ -1918,5 +1918,245 @@
     "artist": "Kim Hansen",
     "license": "CC BY-SA 3.0",
     "source": "https://commons.wikimedia.org/wiki/File:Cow_(Fleckvieh_breed)_Oeschinensee_Slaunger_2009-07-07.jpg"
+  },
+  {
+    "path": "assets/cards/jpn/animal.jpg",
+    "kind": "animal",
+    "title": "Kopfstudie eines Japanmakaken (Macaca fuscata) im Jigokudani Yaen Kōen, Japan.jpg",
+    "artist": "Frank Schulenburg",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Kopfstudie_eines_Japanmakaken_%28Macaca_fuscata%29_im_Jigokudani_Yaen_K%C5%8Den%2C_Japan.jpg"
+  },
+  {
+    "path": "assets/cards/jpn/currency.jpg",
+    "kind": "currency",
+    "title": "500 yen bicolor clad coin obverse.jpg",
+    "artist": "Heavy Frisker",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:500_yen_bicolor_clad_coin_obverse.jpg"
+  },
+  {
+    "path": "assets/cards/jpn/landmark.jpg",
+    "kind": "landmark",
+    "title": "Mount Fuji from Lake Kawaguchi 20170206.jpg",
+    "artist": "Suicasmo",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Mount_Fuji_from_Lake_Kawaguchi_20170206.jpg"
+  },
+  {
+    "path": "assets/cards/jpn/dish.jpg",
+    "kind": "dish",
+    "title": "Shoyu Ramen.jpg",
+    "artist": "Guilhem Vellut",
+    "license": "CC BY 2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Shoyu_Ramen.jpg"
+  },
+  {
+    "path": "assets/cards/lka/animal.jpg",
+    "kind": "animal",
+    "title": "Sri Lankan Elephant (Elephas maximus maximus).jpg",
+    "artist": "Senthiaathavan",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Sri_Lankan_Elephant_%28Elephas_maximus_maximus%29.jpg"
+  },
+  {
+    "path": "assets/cards/lka/currency.jpg",
+    "kind": "currency",
+    "title": "Sri Lankan five rupee coin.jpg",
+    "artist": "AKS.9955",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ASri_Lankan_five_rupee_coin.jpg"
+  },
+  {
+    "path": "assets/cards/lka/landmark.jpg",
+    "kind": "landmark",
+    "title": "Sigiriya.jpg",
+    "artist": "Bernard Gagnon",
+    "license": "CC BY-SA 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ASigiriya.jpg"
+  },
+  {
+    "path": "assets/cards/lka/dish.jpg",
+    "kind": "dish",
+    "title": "Sri Lankan Rice and Curry.jpg",
+    "artist": "Lankan Foodie",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ASri_Lankan_Rice_and_Curry.jpg"
+  },
+  {
+    "path": "assets/cards/phl/animal.jpg",
+    "kind": "animal",
+    "title": "Monkey-Eating Eagle (Philippine Eagle).jpg",
+    "artist": "Julan Shirwod Nueva",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AMonkey-Eating_Eagle_%28Philippine_Eagle%29.jpg"
+  },
+  {
+    "path": "assets/cards/phl/currency.jpg",
+    "kind": "currency",
+    "title": "Philippines New Generation 1 peso coin reverse.png",
+    "artist": "Itsquietuptown",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3APhilippines_New_Generation_1_peso_coin_reverse.png"
+  },
+  {
+    "path": "assets/cards/phl/landmark.jpg",
+    "kind": "landmark",
+    "title": "Chocolate Hills Carmen Bohol 2019.jpg",
+    "artist": "Wolfgang Hägele",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AChocolate_Hills_Carmen_Bohol_2019.jpg"
+  },
+  {
+    "path": "assets/cards/phl/dish.jpg",
+    "kind": "dish",
+    "title": "Chicken adobo.jpg",
+    "artist": "dbgg1979 on flickr",
+    "license": "CC BY 2.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AChicken_adobo.jpg"
+  },
+  {
+    "path": "assets/cards/sgp/animal.jpg",
+    "kind": "animal",
+    "title": "Smooth Coated Otter 1.jpg",
+    "artist": "Red Eyes Black Dragon 92",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ASmooth_Coated_Otter_1.jpg"
+  },
+  {
+    "path": "assets/cards/sgp/currency.jpg",
+    "kind": "currency",
+    "title": "10 dollars of Singapore - ASEAN 10th Anniversary 1977.png",
+    "artist": "Windrain",
+    "license": "CC0",
+    "source": "https://commons.wikimedia.org/wiki/File%3A10_dollars_of_Singapore_-_ASEAN_10th_Anniversary_1977.png"
+  },
+  {
+    "path": "assets/cards/sgp/landmark.jpg",
+    "kind": "landmark",
+    "title": "Supertree Grove, Gardens by the Bay, Singapore1.jpg",
+    "artist": "Mustang Joe",
+    "license": "CC0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ASupertree_Grove%2C_Gardens_by_the_Bay%2C_Singapore1.jpg"
+  },
+  {
+    "path": "assets/cards/sgp/dish.jpg",
+    "kind": "dish",
+    "title": "Hainanese chicken rice in Singapore.jpg",
+    "artist": "Pauloleong2002",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AHainanese_chicken_rice_in_Singapore.jpg"
+  },
+  {
+    "path": "assets/cards/cyp/animal.jpg",
+    "kind": "animal",
+    "title": "Cyprus mouflon (Ovis gmelini ophion).jpg",
+    "artist": "Charles J. Sharp",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ACyprus_mouflon_%28Ovis_gmelini_ophion%29.jpg"
+  },
+  {
+    "path": "assets/cards/cyp/currency.jpg",
+    "kind": "currency",
+    "title": "1 Euro, Cyprus.jpg",
+    "artist": "Unknown authorUnknown author",
+    "license": "CC BY 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3A1_Euro%2C_Cyprus.jpg"
+  },
+  {
+    "path": "assets/cards/cyp/landmark.jpg",
+    "kind": "landmark",
+    "title": "Kourion Archaeological Site Cyprus.jpg",
+    "artist": "Salwa Farwaneh Dameh",
+    "license": "CC0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AKourion_Archaeological_Site_Cyprus.jpg"
+  },
+  {
+    "path": "assets/cards/cyp/dish.jpg",
+    "kind": "dish",
+    "title": "Grilled haloumi cheese in Cyprus.JPG",
+    "artist": "Anatoliy Smaga",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AGrilled_haloumi_cheese_in_Cyprus.JPG"
+  },
+  {
+    "path": "assets/cards/bhr/animal.jpg",
+    "kind": "animal",
+    "title": "White-eared bulbul (Pycnonotus leucotis leucotis).jpg",
+    "artist": "Charles J. Sharp",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AWhite-eared_bulbul_%28Pycnonotus_leucotis_leucotis%29.jpg"
+  },
+  {
+    "path": "assets/cards/bhr/currency.jpg",
+    "kind": "currency",
+    "title": "500 Fils of Bahrain - Isa bin Salman (Isa Town) - 1968.jpg",
+    "artist": "Windrain",
+    "license": "CC0",
+    "source": "https://commons.wikimedia.org/wiki/File%3A500_Fils_of_Bahrain_-_Isa_bin_Salman_%28Isa_Town%29_-_1968.jpg"
+  },
+  {
+    "path": "assets/cards/bhr/landmark.jpg",
+    "kind": "landmark",
+    "title": "Bahrain Fort March 2015.JPG",
+    "artist": "Martin Falbisoner",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ABahrain_Fort_March_2015.JPG"
+  },
+  {
+    "path": "assets/cards/bhr/dish.jpg",
+    "kind": "dish",
+    "title": "Balaleet 2019.jpg",
+    "artist": "Droodkin",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ABalaleet_2019.jpg"
+  },
+  {
+    "path": "assets/flags/jpn.svg",
+    "kind": "flag",
+    "title": "Flag of Japan.svg",
+    "artist": "Various",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3AFlag_of_Japan.svg"
+  },
+  {
+    "path": "assets/flags/lka.svg",
+    "kind": "flag",
+    "title": "Flag of Sri Lanka.svg",
+    "artist": "Original: Sri Lanka Vectorization: Zscout370, Mike Rohsopht",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3AFlag_of_Sri_Lanka.svg"
+  },
+  {
+    "path": "assets/flags/phl.svg",
+    "kind": "flag",
+    "title": "Flag of the Philippines.svg",
+    "artist": "See File history below for details.",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3AFlag_of_the_Philippines.svg"
+  },
+  {
+    "path": "assets/flags/sgp.svg",
+    "kind": "flag",
+    "title": "Flag of Singapore.svg",
+    "artist": "Original: Government of Singapore Vector: Zscout370",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3AFlag_of_Singapore.svg"
+  },
+  {
+    "path": "assets/flags/cyp.svg",
+    "kind": "flag",
+    "title": "Flag of Cyprus.svg",
+    "artist": "İsmet Güney, SVG by User:Vzb83~commonswiki",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3AFlag_of_Cyprus.svg"
+  },
+  {
+    "path": "assets/flags/bhr.svg",
+    "kind": "flag",
+    "title": "Flag of Bahrain.svg",
+    "artist": "Source: Drawn by SKopp, rewritten by Zscout370",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3AFlag_of_Bahrain.svg"
   }
 ]

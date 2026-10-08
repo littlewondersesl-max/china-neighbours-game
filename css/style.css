@@ -16,7 +16,7 @@ button { font: inherit; cursor: pointer; }
 }
 #app.mode-puzzle { --tray: 104px; --tray-b: 104px; }
 #app.mode-puzzle.one-tray { --tray-b: 0px; }
-#app.mode-puzzle.mode-build { --tray: 128px; --tray-b: 0px; }
+#app.mode-puzzle.mode-build { --tray: 124px; --tray-b: 0px; }
 #app:not(.mode-puzzle) .tray,
 #app.one-tray #tray-bottom { display: none; }
 
@@ -37,14 +37,16 @@ button { font: inherit; cursor: pointer; }
   scrollbar-color: #d6b87a #12202b;
 }
 #app.mode-build .tray-tile {
-  flex: 0 0 96px;
-  width: 96px;
-  max-width: 96px;
-  min-width: 96px;
+  flex: 0 0 108px;
+  width: 108px;
+  max-width: 108px;
+  min-width: 108px;
+  padding: 6px;
 }
-#app.mode-build .tray-tile .thumb,
-#app.mode-build .tray-tile .thumb img,
-#app.mode-build .tray-tile .thumb svg { height: 96px; }
+#app.mode-build .tray-tile .thumb {
+  width: 96px;
+  height: 96px;
+}
 #tray-top { border-bottom: 1px solid rgba(214, 184, 122, 0.28); }
 #tray-bottom { border-top: 1px solid rgba(214, 184, 122, 0.28); }
 .tray-tile {
@@ -73,7 +75,8 @@ button { font: inherit; cursor: pointer; }
   position: absolute;
   inset: 0;
   width: 100%;
-  height: 52px;
+  height: 100%;
+  object-fit: contain;
   pointer-events: none;
 }
 .tray-tile .thumb path {
