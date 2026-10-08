@@ -61,6 +61,7 @@ const appEl = $("app");
 const labelsEl = $("labels");
 const handlesEl = $("handles");
 const linesEl = $("lines");
+const ghostsEl = $("ghosts");
 const weldEl = $("weld");
 const graticuleEl = $("graticule");
 const titleEl = $("title");
@@ -80,6 +81,7 @@ let capitalRoots = new Set();
 let guideOpen = false;
 let askMode = null;
 let askIso = null;
+let namedFlash = null;
 let asiaIsos = [];
 let asiaSet = new Set();
 let nameIndex = new Map();
@@ -201,6 +203,7 @@ function bind() {
   $("choose-neighbours").addEventListener("click", chooseNeighbours);
   $("choose-build").addEventListener("click", () => openAsk("start"));
   $("ask-form").addEventListener("submit", onAskSubmit);
+  $("ask-input").addEventListener("input", onAskInput);
   $("ask-cancel").addEventListener("click", closeAsk);
   $("card-modal").addEventListener("click", onCardClick);
   $("reward-back").addEventListener("click", closeReward);
@@ -233,7 +236,11 @@ function setMode(next) {
   $("mode-choice").hidden = next !== "asia";
   $("puzzle-tools").hidden = next !== "puzzle";
   toastEl.hidden = true;
-  if (next !== "puzzle") guideOpen = false;
+  if (next !== "puzzle") {
+    guideOpen = false;
+    namedFlash = null;
+    $("island-note").hidden = true;
+  }
   syncGuide();
   syncTools();
 }
@@ -427,11 +434,57 @@ function placedCount() {
   return n;
 }
 
+function startComponent() {
+  const seen = new Set();
+  if (!buildStart || !asiaSet.has(buildStart)) return seen;
+  const queue = [buildStart];
+  seen.add(buildStart);
+  while (queue.length) {
+    const cur = queue.pop();
+    for (const next of asiaNeighbours(cur)) {
+      if (seen.has(next)) continue;
+      seen.add(next);
+      queue.push(next);
+    }
+  }
+  return seen;
+}
+
+function unplacedIsos() {
+  return asiaIsos.filter((iso) => !pieces.get(iso)?.locked);
+}
+
+function islandsOnlyLeft() {
+  if (playKind !== "build" || mode !== "puzzle") return false;
+  for (const iso of startComponent()) {
+    if (!pieces.get(iso)?.locked) return false;
+  }
+  const left = unplacedIsos();
+  return left.length > 0 && left.every((iso) => asiaNeighbours(iso).length === 0);
+}
+
+function flashTargets() {
+  const set = new Set();
+  if (playKind !== "build" || mode !== "puzzle") return set;
+  if (islandsOnlyLeft()) {
+    for (const iso of unplacedIsos()) set.add(iso);
+  }
+  if (namedFlash && meshes.has(namedFlash) && !pieces.get(namedFlash)?.locked) set.add(namedFlash);
+  return set;
+}
+
+function syncIslandNote() {
+  const el = $("island-note");
+  if (!el) return;
+  el.hidden = !islandsOnlyLeft();
+}
+
 function updateProgress() {
   if (playKind !== "build" || mode !== "puzzle") return;
   const el = $("progress");
   el.hidden = false;
   el.textContent = `${placedCount()} / ${asiaIsos.length} placed · 已放好`;
+  syncIslandNote();
 }
 
 function skippingCards() {
@@ -559,7 +612,9 @@ function enterBuild(iso) {
   buildGuide(need);
   const meta = shapeByIso.get(iso).properties;
   titleEl.innerHTML = `<b>Build Asia</b><span>拼出亚洲 · 从${meta.zh}开始</span>`;
-  hintEl.textContent = "A shape locks only when it touches the chain · or enter a name and its capital · 形状要连上已放好的国家，或输入国名和首都";
+  hintEl.textContent = asiaNeighbours(iso).length
+    ? "A shape locks only when it touches the chain · or enter a name and its capital · 形状要连上已放好的国家，或输入国名和首都"
+    : `${meta.name} is an island, so type a name and a capital to place the next country. · ${meta.zh}是岛国，请输入国名和首都来放置下一个国家。`;
   document.title = "Build Asia · 拼出亚洲";
   updateProgress();
   requestAnimationFrame(() => {
@@ -728,6 +783,7 @@ function draw() {
       mesh: meshes.get(p.iso), cx: p.cx, cy: p.cy, scale: p.scale,
     })), view);
     drawPuzzleLines(order);
+    drawGhosts();
     drawLabels(order);
     drawHandles();
     graticuleEl.innerHTML = puzzleGraticule();
@@ -735,6 +791,7 @@ function draw() {
     const radius = globeRadius();
     mainGL.drawGlobe(globe.lon0, globe.lat0, radius, w, h);
     drawGlobeLines(radius);
+    ghostsEl.innerHTML = "";
     labelsEl.innerHTML = "";
     handlesEl.innerHTML = "";
     graticuleEl.innerHTML = "";
@@ -801,6 +858,22 @@ function drawPuzzleLines(order) {
     html += `<path class="outline${piece.fixed ? " centre" : ""}${piece.locked ? " locked" : ""}" d="${outline}"/>`;
   }
   linesEl.innerHTML = html;
+}
+
+function drawGhosts() {
+  const targets = flashTargets();
+  if (!targets.size) {
+    ghostsEl.innerHTML = "";
+    return;
+  }
+  let html = "";
+  for (const iso of targets) {
+    const mesh = meshes.get(iso);
+    if (!mesh) continue;
+    const d = screenPath(mesh.rings, { cx: mesh.cx, cy: mesh.cy, scale: 1 }, view);
+    html += `<path class="ghost${iso === namedFlash ? " named" : ""}" data-iso="${iso}" d="${d}"/>`;
+  }
+  ghostsEl.innerHTML = html;
 }
 
 function drawLabels(order) {
@@ -1418,6 +1491,7 @@ function closeReward() {
 function openAsk(next) {
   askMode = next;
   askIso = next === "capital" ? askIso : null;
+  namedFlash = next === "capital" && askIso && !pieces.get(askIso)?.locked ? askIso : null;
   $("ask").hidden = false;
   $("ask-input").value = "";
   $("ask-msg").hidden = true;
@@ -1433,13 +1507,25 @@ function openAsk(next) {
     $("ask-help").textContent = "What is its capital? · 它的首都叫什么？";
   }
   requestAnimationFrame(() => $("ask-input").focus());
+  requestDraw();
 }
 
 function closeAsk() {
   askMode = null;
   askIso = null;
+  namedFlash = null;
   $("ask").hidden = true;
   $("ask-msg").hidden = true;
+  requestDraw();
+}
+
+function onAskInput() {
+  if (askMode !== "name") return;
+  const found = lookupCountry($("ask-input").value);
+  const next = found.kind === "asia" && !pieces.get(found.iso)?.locked ? found.iso : null;
+  if (next === namedFlash) return;
+  namedFlash = next;
+  requestDraw();
 }
 
 function setAskMsg(en, zh) {
@@ -1563,6 +1649,24 @@ window.__game = {
   skip(on) {
     $("skip-cards").checked = !!on;
     return $("skip-cards").checked;
+  },
+  islandsLeft() {
+    return islandsOnlyLeft();
+  },
+  flashing() {
+    return [...flashTargets()];
+  },
+  placeLand() {
+    if (playKind !== "build") return { ok: false };
+    for (const iso of asiaIsos) {
+      if (!asiaNeighbours(iso).length || pieces.get(iso)?.locked) continue;
+      const mesh = meshes.get(iso);
+      pieces.set(iso, { iso, cx: mesh.cx, cy: mesh.cy, scale: 1, locked: true, fixed: iso === buildStart });
+      markTray(iso, true);
+    }
+    updateProgress();
+    requestDraw();
+    return { ok: true, placed: placedCount(), total: asiaIsos.length, flashing: [...flashTargets()], note: !$("island-note").hidden };
   },
   frame(iso) {
     const id = String(iso || "").toUpperCase();

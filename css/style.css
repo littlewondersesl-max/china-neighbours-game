@@ -190,7 +190,7 @@ button { font: inherit; cursor: pointer; }
 }
 .handle.ne, .handle.sw { cursor: nesw-resize; }
 
-#back, #title, #hint, #toast, #puzzle-tools, #mode-choice { position: absolute; z-index: 4; }
+#back, #title, #hint, #toast, #island-note, #puzzle-tools, #mode-choice { position: absolute; z-index: 4; }
 #puzzle-tools {
   top: 12px;
   right: 12px;
@@ -279,6 +279,40 @@ button { font: inherit; cursor: pointer; }
 #toast strong, #toast span { display: block; }
 #toast strong { font-size: 20px; margin-bottom: 6px; }
 #toast span { font-size: 16px; }
+#island-note {
+  top: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(640px, calc(100% - 28px));
+  background: #f6f0e4;
+  color: #241c14;
+  border-radius: 16px;
+  padding: 14px 18px;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32);
+  pointer-events: none;
+}
+#island-note strong, #island-note span { display: block; }
+#island-note strong { font-size: 16px; line-height: 1.35; margin-bottom: 6px; }
+#island-note span { font-size: 15px; line-height: 1.35; }
+.ghost {
+  fill: none;
+  stroke: #8ef6ff;
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px #7af6ff);
+  animation: ghost-pulse 2.6s ease-in-out infinite;
+}
+.ghost.named {
+  stroke: #fff3b0;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px #ffe38a);
+}
+@keyframes ghost-pulse {
+  0%, 100% { opacity: 0.62; }
+  50% { opacity: 1; }
+}
 
 #guide {
   border-left: 1px solid rgba(214, 184, 122, 0.28);
@@ -601,5 +635,6 @@ button { font: inherit; cursor: pointer; }
   #card-title { font-size: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .weld-core, #card-svg .comet { animation: none; }
+  .weld-core, #card-svg .comet, .ghost { animation: none; }
+  .ghost { opacity: 0.92; }
 }

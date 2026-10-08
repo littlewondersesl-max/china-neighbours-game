@@ -15,6 +15,7 @@
           <svg id="graticule" aria-hidden="true"></svg>
           <canvas id="gl"></canvas>
           <svg id="overlay" aria-hidden="true">
+            <g id="ghosts"></g>
             <g id="lines"></g>
             <g id="weld"></g>
           </svg>
@@ -36,6 +37,10 @@
             </div>
           </div>
           <p id="hint"></p>
+          <div id="island-note" hidden role="status">
+            <strong>The remaining countries have no land borders. They are islands! Enter their name and capital to place them.</strong>
+            <span>剩下的国家没有陆地邻国，它们是岛国！输入国名和首都来放置它们。</span>
+          </div>
           <div id="toast" hidden></div>
         </div>
       </section>
