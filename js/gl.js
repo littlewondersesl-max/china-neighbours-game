@@ -129,12 +129,12 @@ function buildSphere() {
 
 const gpuTables = new WeakMap();
 
-export function createView(canvas) {
+export function createView(canvas, options = {}) {
   const gl = canvas.getContext("webgl", {
     alpha: true,
     antialias: true,
     premultipliedAlpha: true,
-    preserveDrawingBuffer: false,
+    preserveDrawingBuffer: !!options.preserve,
   });
   if (!gl) throw new Error("WebGL is not available in this browser.");
   const uintExt = gl.getExtension("OES_element_index_uint");
@@ -238,7 +238,7 @@ export function createView(canvas) {
     gl.clear(gl.COLOR_BUFFER_BIT);
   }
 
-  function drawPieces(entries, view) {
+  function drawPieces(entries, view, options = {}) {
     if (!ready) return;
     begin();
     gl.useProgram(pieceProg);
@@ -247,6 +247,7 @@ export function createView(canvas) {
     gl.uniform1f(pieceLoc.uKmpp, view.kmPerPx);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, tex);
+    const shadow = options.shadow !== false;
     for (const entry of entries) {
       const mesh = entry.mesh;
       if (!mesh.indices.length) continue;
@@ -259,9 +260,11 @@ export function createView(canvas) {
       gl.vertexAttribPointer(pieceLoc.aLL, 2, gl.FLOAT, false, 16, 8);
       gl.uniform2f(pieceLoc.uCenter, entry.cx, entry.cy);
       gl.uniform1f(pieceLoc.uScale, entry.scale);
-      gl.uniform2f(pieceLoc.uPxOffset, 5, 6);
-      gl.uniform1f(pieceLoc.uShadow, 1);
-      gl.drawElements(gl.TRIANGLES, buf.count, buf.type, 0);
+      if (shadow) {
+        gl.uniform2f(pieceLoc.uPxOffset, 5, 6);
+        gl.uniform1f(pieceLoc.uShadow, 1);
+        gl.drawElements(gl.TRIANGLES, buf.count, buf.type, 0);
+      }
       gl.uniform2f(pieceLoc.uPxOffset, 0, 0);
       gl.uniform1f(pieceLoc.uShadow, 0);
       gl.drawElements(gl.TRIANGLES, buf.count, buf.type, 0);

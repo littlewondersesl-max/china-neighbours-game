@@ -41,11 +41,39 @@ MERGE_INTO = {
 }
 SKIP = {"PGA", "SCR", "IOA"}
 
-# CIA World Factbook-style lengths already used by the China cards (km).
-CHINA_BORDER_KM = {
-    "AFG": 90, "BTN": 480, "IND": 2660, "KAZ": 1770, "KGZ": 1060,
-    "LAO": 475, "MMR": 2130, "MNG": 4630, "NPL": 1390, "PAK": 440,
-    "PRK": 1350, "RUS": 4180, "TJK": 480, "VNM": 1300,
+# 2025 CIA World Factbook land-boundary lengths (km). The simplified seam is
+# shorter than a surveyed border, so a rebuild keeps these published figures.
+# China–Russia is the two segments added (4,133 + 46). Israel–Jordan is 307:
+# Jordan's figure, equal to Israel's 327 minus the 20 km inside the Dead Sea.
+# Palestine adds the West Bank and Gaza Strip lengths.
+FACTBOOK_BORDER_KM = {
+    "AFG|CHN": 91, "AFG|IRN": 921, "AFG|PAK": 2670, "AFG|TJK": 1357,
+    "AFG|TKM": 804, "AFG|UZB": 144, "ARE|OMN": 609, "ARE|SAU": 457,
+    "ARM|AZE": 996, "ARM|GEO": 219, "ARM|IRN": 44, "ARM|TUR": 311,
+    "AZE|GEO": 428, "AZE|IRN": 689, "AZE|RUS": 338, "AZE|TUR": 17,
+    "BGD|IND": 4142, "BGD|MMR": 271, "BGR|GRC": 472, "BGR|TUR": 223,
+    "BLR|LTU": 640, "BLR|LVA": 161, "BLR|POL": 375, "BLR|RUS": 1312,
+    "BLR|UKR": 1111, "BRN|MYS": 266, "BTN|CHN": 477, "BTN|IND": 659,
+    "CHN|IND": 2659, "CHN|KAZ": 1765, "CHN|KGZ": 1063, "CHN|LAO": 475,
+    "CHN|MMR": 2129, "CHN|MNG": 4630, "CHN|NPL": 1389, "CHN|PAK": 438,
+    "CHN|PRK": 1352, "CHN|RUS": 4179, "CHN|TJK": 477, "CHN|VNM": 1297,
+    "EGY|ISR": 208, "EGY|PSX": 13, "EST|LVA": 333, "EST|RUS": 324,
+    "FIN|NOR": 709, "FIN|RUS": 1309, "GEO|RUS": 894, "GEO|TUR": 273,
+    "GRC|TUR": 192, "IDN|MYS": 1881, "IDN|PNG": 824, "IDN|TLS": 253,
+    "IND|MMR": 1468, "IND|NPL": 1770, "IND|PAK": 3190, "IRN|IRQ": 1599,
+    "IRN|PAK": 959, "IRN|TKM": 1148, "IRN|TUR": 534, "IRQ|JOR": 179,
+    "IRQ|KWT": 254, "IRQ|SAU": 811, "IRQ|SYR": 599, "IRQ|TUR": 367,
+    "ISR|JOR": 307, "ISR|LBN": 81, "ISR|PSX": 389, "ISR|SYR": 83,
+    "JOR|PSX": 148, "JOR|SAU": 731, "JOR|SYR": 379, "KAZ|KGZ": 1212,
+    "KAZ|RUS": 7644, "KAZ|TKM": 413, "KAZ|UZB": 2330, "KGZ|TJK": 984,
+    "KGZ|UZB": 1314, "KHM|LAO": 555, "KHM|THA": 817, "KHM|VNM": 1158,
+    "KOR|PRK": 237, "KWT|SAU": 221, "LAO|MMR": 238, "LAO|THA": 1845,
+    "LAO|VNM": 2161, "LBN|SYR": 403, "LTU|LVA": 544, "LTU|POL": 100,
+    "LTU|RUS": 261, "LVA|RUS": 332, "MMR|THA": 2416, "MNG|RUS": 3452,
+    "MYS|THA": 595, "NOR|RUS": 191, "OMN|SAU": 658, "OMN|YEM": 294,
+    "POL|RUS": 209, "POL|UKR": 498, "PRK|RUS": 18, "QAT|SAU": 87,
+    "RUS|UKR": 1944, "SAU|YEM": 1307, "SYR|TUR": 899, "TJK|UZB": 1312,
+    "TKM|UZB": 1793,
 }
 
 NAME_EN = {
@@ -451,10 +479,8 @@ def main():
             if km < MIN_BORDER_KM:
                 continue
             key = "|".join(sorted((iso, other)))
-            if "CHN" in (iso, other):
-                mate = other if iso == "CHN" else iso
-                if mate in CHINA_BORDER_KM:
-                    km = CHINA_BORDER_KM[mate]
+            if key in FACTBOOK_BORDER_KM:
+                km = FACTBOOK_BORDER_KM[key]
             lengths[key] = int(round(km))
             if merged is not None:
                 seams[key] = seam_coords(merged)

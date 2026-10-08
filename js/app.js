@@ -66,7 +66,9 @@ let rivers = null;
 let cards = null;
 let mainGL = null;
 let cardGL = null;
+let thumbGL = null;
 let reliefImage = null;
+const thumbCache = new Map();
 
 const d3 = globalThis.d3;
 const ortho = d3.geoOrthographic().clipAngle(90).precision(0.4);
@@ -102,6 +104,7 @@ async function init() {
   try {
     mainGL = createView($("gl"));
     cardGL = createView($("card-gl"));
+    thumbGL = createView(document.createElement("canvas"), { preserve: true });
     const [world, shapes, borderData, riverData, cardData, relief] = await Promise.all([
       loadJSON("data/world.json"),
       loadJSON("data/shapes.json"),
@@ -119,6 +122,7 @@ async function init() {
     for (const f of shapes.features) shapeByIso.set(f.properties.iso, f);
     mainGL.setRelief(relief);
     cardGL.setRelief(relief);
+    thumbGL.setRelief(relief);
     bind();
     const params = new URLSearchParams(location.search);
     const jump = (params.get("centre") || "").toUpperCase();
@@ -250,6 +254,7 @@ function enterPuzzle(iso) {
   const nbs = borders.neighbours[iso].slice();
   const need = [iso, ...nbs];
   meshes = new Map();
+  thumbCache.clear();
   for (const id of need) {
     const feature = shapeByIso.get(id);
     meshes.set(id, buildMesh(feature, proj, rivers[id] || []));
@@ -305,20 +310,28 @@ function bearing(a, b) {
   return Math.atan2(y, x);
 }
 
-function thumbSvg(mesh) {
-  const pad = Math.max(mesh.width, mesh.height) * 0.08 || 1;
-  const minX = mesh.minX - pad, maxX = mesh.maxX + pad;
-  const minY = mesh.minY - pad, maxY = mesh.maxY + pad;
-  let d = "";
-  for (const ring of mesh.rings) {
-    for (let i = 0; i < ring.length; i++) {
-      const x = mesh.cx + ring[i][0];
-      const y = mesh.cy + ring[i][1];
-      d += (i ? "L" : "M") + x.toFixed(1) + " " + (-y).toFixed(1) + " ";
-    }
-    d += "Z ";
-  }
-  return `<svg viewBox="${minX.toFixed(1)} ${(-maxY).toFixed(1)} ${(maxX - minX).toFixed(1)} ${(maxY - minY).toFixed(1)}" aria-hidden="true"><path d="${d}" fill="#d7c4a2" stroke="#3c4a44" stroke-width="${((maxX - minX) / 80).toFixed(2)}"/></svg>`;
+function thumbHtml(iso) {
+  const cached = thumbCache.get(iso);
+  if (cached) return cached;
+  const mesh = meshes.get(iso);
+  const tw = 220;
+  const th = 120;
+  const pad = 0.86;
+  const kmpp = Math.max(mesh.width / (tw * pad), mesh.height / (th * pad)) || 1;
+  const thumbView = {
+    width: tw,
+    height: th,
+    kmPerPx: kmpp,
+    originX: mesh.cx - (tw * kmpp) / 2,
+    originY: mesh.cy - (th * kmpp) / 2,
+  };
+  thumbGL.resize(tw, th);
+  thumbGL.drawPieces([{ mesh, cx: mesh.cx, cy: mesh.cy, scale: 1 }], thumbView, { shadow: false });
+  const url = thumbGL.gl.canvas.toDataURL("image/png");
+  const outline = screenPath(mesh.rings, { cx: mesh.cx, cy: mesh.cy, scale: 1 }, thumbView);
+  const html = `<span class="thumb"><img alt="" src="${url}"><svg viewBox="0 0 ${tw} ${th}" aria-hidden="true"><path d="${outline}"/></svg></span>`;
+  thumbCache.set(iso, html);
+  return html;
 }
 
 function buildTrays(trays) {
@@ -329,7 +342,7 @@ function buildTrays(trays) {
     const tile = document.createElement("div");
     tile.className = "tray-tile";
     tile.dataset.code = iso;
-    tile.innerHTML = `${thumbSvg(meshes.get(iso))}<div class="name">${meta.name}<small>${meta.zh}</small></div>`;
+    tile.innerHTML = `${thumbHtml(iso)}<div class="name">${meta.name}<small>${meta.zh}</small></div>`;
     tile.addEventListener("pointerdown", (e) => startTrayDrag(e, iso));
     return tile;
   };
@@ -851,6 +864,7 @@ function renderCard() {
   const iso = cardIso;
   const meta = shapeByIso.get(iso).properties;
   const card = cards[iso];
+  document.querySelector(".card-panel").classList.toggle("show-photos", cardIndex === 3);
   $("card-kicker").textContent = `${cardIndex + 1} / 4`;
   $("card-title").textContent = `${meta.name} · ${meta.zh}`;
   const shapeOn = cardIndex <= 1;

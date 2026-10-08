@@ -47,7 +47,25 @@ button { font: inherit; cursor: pointer; }
 .tray-tile:hover { border-color: #d6b87a; }
 .tray-tile:active { cursor: grabbing; }
 .tray-tile.used { opacity: 0.38; pointer-events: none; filter: grayscale(0.5); }
-.tray-tile svg { width: 100%; height: 52px; }
+.tray-tile .thumb {
+  position: relative;
+  width: 100%;
+  height: 52px;
+}
+.tray-tile .thumb img,
+.tray-tile .thumb svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 52px;
+  pointer-events: none;
+}
+.tray-tile .thumb path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+}
 .tray-tile .name {
   font-size: 12px;
   font-weight: 700;
@@ -241,14 +259,26 @@ button { font: inherit; cursor: pointer; }
 
 .card-panel {
   width: min(920px, 96vw);
-  max-height: min(92vh, 860px);
-  overflow: auto;
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: #f6f0e4;
   color: #241c14;
   border-radius: 18px;
   padding: 22px 26px 16px;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
   position: relative;
+}
+.card-panel.show-photos {
+  height: calc(100vh - 36px);
+}
+#card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .icon-x {
   position: absolute;
@@ -263,17 +293,20 @@ button { font: inherit; cursor: pointer; }
   line-height: 1;
   color: #4a3d30;
 }
-.card-kicker { font-size: 12px; letter-spacing: 0.14em; color: #8a7560; }
+.card-kicker { font-size: 12px; letter-spacing: 0.14em; color: #8a7560; flex: 0 0 auto; }
 #card-title {
   font-family: Palatino, "Iowan Old Style", "Songti SC", "Noto Serif SC", serif;
   font-size: 30px;
   font-weight: 650;
   margin: 2px 0 12px;
+  flex: 0 0 auto;
 }
 .stage {
   position: relative;
-  width: 100%;
+  flex: 0 0 auto;
+  width: min(100%, calc((100vh - 430px) * 640 / 340));
   aspect-ratio: 640 / 340;
+  margin-inline: auto;
   background: #102433;
   border-radius: 12px;
   overflow: hidden;
@@ -299,6 +332,7 @@ button { font: inherit; cursor: pointer; }
   gap: 12px;
   align-items: center;
   margin-top: 16px;
+  flex: 0 0 auto;
 }
 .card-nav button {
   border-radius: 999px;
@@ -327,21 +361,37 @@ button { font: inherit; cursor: pointer; }
 #flag-caption { text-align: center; margin-top: 12px; font-size: 20px; }
 
 .photo-grid {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px 18px;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px 14px;
 }
-.photo-card { margin: 0; text-align: center; }
+.photo-card {
+  container-type: size;
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
 .mat {
+  width: min(100cqw, calc(100cqh - 62px));
+  aspect-ratio: 1;
+  box-sizing: border-box;
   background: #fff;
   border: 1px solid #c9b89a;
-  padding: 8px;
+  padding: 6px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 .mat img {
   display: block;
   width: 100%;
-  aspect-ratio: 1;
+  height: 100%;
   object-fit: cover;
   background:
     linear-gradient(135deg, #efe6d6, #e4d3b8);
