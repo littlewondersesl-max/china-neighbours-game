@@ -1500,7 +1500,7 @@ function openAsk(next) {
   $("ask-msg").hidden = true;
   if (next === "start") {
     $("ask-title").textContent = `${BUILD_LABEL.en} · ${BUILD_LABEL.zh}`;
-    $("ask-help").textContent = `Type any ${BUILD_TARGET.en} country to begin, in English or Chinese. · 用英文或中文输入任何一个${BUILD_TARGET.zh}国家。`;
+    $("ask-help").textContent = `Type any country in ${BUILD_TARGET.en} to begin, in English or Chinese. · 用英文或中文输入任何一个${BUILD_TARGET.zh}国家。`;
   } else if (next === "name") {
     $("ask-title").textContent = "Which country? · 哪个国家？";
     $("ask-help").textContent = "Type its name. Next you will name its capital. · 先写国名，下一步写首都。";
