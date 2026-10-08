@@ -5,7 +5,8 @@ Classroom puzzle about land neighbours in Asia. Facts are geography, culture, fo
 ## Map data
 
 - Country outlines: [Natural Earth](https://www.naturalearthdata.com/) 1:10 million Admin 0 countries (public domain). Simplified for the web. Taiwan, Hong Kong, and Macao are drawn as part of China. Cyprus is drawn as one island.
-- Terrain: Natural Earth 1:50 million *Cross-blended Hypsometric Tints with Shaded Relief and Water* (`HYP_50M_SR_W`), public domain. Stored as `assets/relief.jpg`.
+- Terrain colour: Natural Earth 1:50 million *Cross-blended Hypsometric Tints with Shaded Relief and Water* (`HYP_50M_SR_W`), public domain. Stored as `assets/relief.jpg`. That image is the first paint at every zoom.
+- Terrain detail: NOAA National Centers for Environmental Information, ETOPO 2022 (public domain, DOI 10.25921/fd45-gt74). `tools/build_terrain.py` turns the 60 arc-second grid, and the 15 arc-second land tiles, into a JPEG pyramid at `assets/terrain/`. Hillshade is new; the colour is still the Natural Earth relief, so coasts and plains stay the same. The page loads a tile only when the view is zoomed in far enough to need it.
 - Rivers: Natural Earth 1:10 million river centerlines (public domain), clipped to countries they actually cross.
 - Coast hint: Natural Earth 1:10 million coastline (public domain), simplified into `data/coast.json`. This is the shoreline, including inland seas such as the Caspian, and not country borders. Rebuild with `python3 tools/build_coast.py` when the shapefile is available.
 - Projection: Lambert azimuthal equal-area. The China puzzle is centred at 40°N, 100°E, matching the previous game. Other centres use the same kind of projection recentred on that country so neighbours are not stretched.
