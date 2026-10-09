@@ -1,0 +1,2252 @@
+{
+  "AFG": {
+    "capital": {
+      "en": "Kabul",
+      "zh": "喀布尔",
+      "lon": 69.172,
+      "lat": 34.529
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Kabul. It is near the centre of Afghanistan.",
+      "zh": "首都是喀布尔，位于阿富汗中部。"
+    },
+    "animal": {
+      "en": "Snow leopard",
+      "zh": "雪豹"
+    },
+    "currency": {
+      "en": "Afghani",
+      "zh": "阿富汗尼"
+    },
+    "landmark": {
+      "en": "Band-e-Amir",
+      "zh": "班德阿米尔湖"
+    },
+    "dish": {
+      "en": "Kabuli pulao",
+      "zh": "喀布尔抓饭"
+    },
+    "images": {
+      "animal": "assets/cards/afg/animal.jpg",
+      "currency": "assets/cards/afg/currency.jpg",
+      "landmark": "assets/cards/afg/landmark.jpg",
+      "dish": "assets/cards/afg/dish.jpg"
+    }
+  },
+  "ARE": {
+    "capital": {
+      "en": "Abu Dhabi",
+      "zh": "阿布扎比",
+      "lon": 54.377,
+      "lat": 24.454
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Abu Dhabi. It is near the centre of United Arab Emirates.",
+      "zh": "首都是阿布扎比，位于阿联酋中部。"
+    },
+    "animal": {
+      "en": "Arabian oryx",
+      "zh": "阿拉伯大羚羊"
+    },
+    "currency": {
+      "en": "Dirham",
+      "zh": "迪拉姆"
+    },
+    "landmark": {
+      "en": "Burj Khalifa",
+      "zh": "哈利法塔"
+    },
+    "dish": {
+      "en": "Luqaimat",
+      "zh": "甜炸球"
+    },
+    "images": {
+      "animal": "assets/cards/are/animal.jpg",
+      "currency": "assets/cards/are/currency.jpg",
+      "landmark": "assets/cards/are/landmark.jpg"
+    }
+  },
+  "ARM": {
+    "capital": {
+      "en": "Yerevan",
+      "zh": "埃里温",
+      "lon": 44.515,
+      "lat": 40.187
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Yerevan. It is in the west of Armenia.",
+      "zh": "首都是埃里温，位于亚美尼亚西部。"
+    },
+    "animal": {
+      "en": "Golden eagle",
+      "zh": "金雕"
+    },
+    "currency": {
+      "en": "Dram",
+      "zh": "德拉姆"
+    },
+    "landmark": {
+      "en": "Geghard",
+      "zh": "格加尔德修道院"
+    },
+    "dish": {
+      "en": "Dolma",
+      "zh": "葡萄叶包饭"
+    },
+    "images": {
+      "animal": "assets/cards/arm/animal.jpg",
+      "currency": "assets/cards/arm/currency.jpg",
+      "landmark": "assets/cards/arm/landmark.jpg",
+      "dish": "assets/cards/arm/dish.jpg"
+    }
+  },
+  "AZE": {
+    "capital": {
+      "en": "Baku",
+      "zh": "巴库",
+      "lon": 49.868,
+      "lat": 40.409
+    },
+    "where": {
+      "en": "in the east",
+      "zh": "东部"
+    },
+    "blurb": {
+      "en": "The capital is Baku. It is in the east of Azerbaijan.",
+      "zh": "首都是巴库，位于阿塞拜疆东部。"
+    },
+    "animal": {
+      "en": "Karabakh horse",
+      "zh": "卡拉巴赫马"
+    },
+    "currency": {
+      "en": "Manat",
+      "zh": "马纳特"
+    },
+    "landmark": {
+      "en": "Maiden Tower",
+      "zh": "少女塔"
+    },
+    "dish": {
+      "en": "Plov",
+      "zh": "抓饭"
+    },
+    "images": {
+      "animal": "assets/cards/aze/animal.jpg",
+      "landmark": "assets/cards/aze/landmark.jpg",
+      "dish": "assets/cards/aze/dish.jpg"
+    }
+  },
+  "BGD": {
+    "capital": {
+      "en": "Dhaka",
+      "zh": "达卡",
+      "lon": 90.413,
+      "lat": 23.81
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Dhaka. It is near the centre of Bangladesh.",
+      "zh": "首都是达卡，位于孟加拉国中部。"
+    },
+    "animal": {
+      "en": "Bengal tiger",
+      "zh": "孟加拉虎"
+    },
+    "currency": {
+      "en": "Taka",
+      "zh": "塔卡"
+    },
+    "landmark": {
+      "en": "Sundarbans",
+      "zh": "孙德尔本斯红树林"
+    },
+    "dish": {
+      "en": "Hilsa curry",
+      "zh": "鲥鱼咖喱"
+    },
+    "images": {
+      "animal": "assets/cards/bgd/animal.jpg",
+      "landmark": "assets/cards/bgd/landmark.jpg",
+      "dish": "assets/cards/bgd/dish.jpg"
+    }
+  },
+  "BGR": {
+    "capital": {
+      "en": "Sofia",
+      "zh": "索非亚",
+      "lon": 23.322,
+      "lat": 42.698
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Sofia. It is in the west of Bulgaria.",
+      "zh": "首都是索非亚，位于保加利亚西部。"
+    },
+    "animal": {
+      "en": "European bee-eater",
+      "zh": "黄喉蜂虎"
+    },
+    "currency": {
+      "en": "Lev",
+      "zh": "列弗"
+    },
+    "landmark": {
+      "en": "Rila Monastery",
+      "zh": "里拉修道院"
+    },
+    "dish": {
+      "en": "Banitsa",
+      "zh": "巴尼察"
+    },
+    "images": {
+      "animal": "assets/cards/bgr/animal.jpg",
+      "landmark": "assets/cards/bgr/landmark.jpg",
+      "dish": "assets/cards/bgr/dish.jpg"
+    }
+  },
+  "BLR": {
+    "capital": {
+      "en": "Minsk",
+      "zh": "明斯克",
+      "lon": 27.567,
+      "lat": 53.9
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Minsk. It is near the centre of Belarus.",
+      "zh": "首都是明斯克，位于白俄罗斯中部。"
+    },
+    "animal": {
+      "en": "European bison",
+      "zh": "欧洲野牛"
+    },
+    "currency": {
+      "en": "Ruble",
+      "zh": "卢布"
+    },
+    "landmark": {
+      "en": "Mir Castle",
+      "zh": "米尔城堡"
+    },
+    "dish": {
+      "en": "Draniki",
+      "zh": "土豆饼"
+    },
+    "images": {
+      "animal": "assets/cards/blr/animal.jpg",
+      "landmark": "assets/cards/blr/landmark.jpg",
+      "dish": "assets/cards/blr/dish.jpg"
+    }
+  },
+  "BRN": {
+    "capital": {
+      "en": "Bandar Seri Begawan",
+      "zh": "斯里巴加湾市",
+      "lon": 114.941,
+      "lat": 4.89
+    },
+    "where": {
+      "en": "in the northeast",
+      "zh": "东北部"
+    },
+    "blurb": {
+      "en": "The capital is Bandar Seri Begawan. It is in the northeast of Brunei.",
+      "zh": "首都是斯里巴加湾市，位于文莱东北部。"
+    },
+    "animal": {
+      "en": "Proboscis monkey",
+      "zh": "长鼻猴"
+    },
+    "currency": {
+      "en": "Brunei dollar",
+      "zh": "文莱元"
+    },
+    "landmark": {
+      "en": "Omar Ali Saifuddien Mosque",
+      "zh": "奥马尔·阿里·赛福鼎清真寺"
+    },
+    "dish": {
+      "en": "Ambuyat",
+      "zh": "阿姆布亚特"
+    },
+    "images": {
+      "animal": "assets/cards/brn/animal.jpg",
+      "landmark": "assets/cards/brn/landmark.jpg",
+      "dish": "assets/cards/brn/dish.jpg"
+    }
+  },
+  "BTN": {
+    "capital": {
+      "en": "Thimphu",
+      "zh": "廷布",
+      "lon": 89.639,
+      "lat": 27.472
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Thimphu. It is in the west of Bhutan.",
+      "zh": "首都是廷布，位于不丹西部。"
+    },
+    "animal": {
+      "en": "Takin",
+      "zh": "羚牛"
+    },
+    "currency": {
+      "en": "Ngultrum",
+      "zh": "努尔特鲁姆"
+    },
+    "landmark": {
+      "en": "Tiger's Nest",
+      "zh": "虎穴寺"
+    },
+    "dish": {
+      "en": "Ema datshi",
+      "zh": "辣椒奶酪"
+    },
+    "images": {
+      "animal": "assets/cards/btn/animal.jpg",
+      "currency": "assets/cards/btn/currency.jpg",
+      "landmark": "assets/cards/btn/landmark.jpg",
+      "dish": "assets/cards/btn/dish.jpg"
+    }
+  },
+  "CHN": {
+    "capital": {
+      "en": "Beijing",
+      "zh": "北京",
+      "lon": 116.407,
+      "lat": 39.904
+    },
+    "where": {
+      "en": "in the northeast",
+      "zh": "东北部"
+    },
+    "blurb": {
+      "en": "The capital is Beijing. It is in the northeast of China.",
+      "zh": "首都是北京，位于中国东北部。"
+    },
+    "animal": {
+      "en": "Giant panda",
+      "zh": "大熊猫"
+    },
+    "currency": {
+      "en": "Renminbi (yuan)",
+      "zh": "人民币（元）"
+    },
+    "landmark": {
+      "en": "Great Wall",
+      "zh": "长城"
+    },
+    "dish": {
+      "en": "Dumplings",
+      "zh": "饺子"
+    },
+    "images": {
+      "animal": "assets/cards/chn/animal.jpg",
+      "landmark": "assets/cards/chn/landmark.jpg",
+      "dish": "assets/cards/chn/dish.jpg"
+    }
+  },
+  "EGY": {
+    "capital": {
+      "en": "Cairo",
+      "zh": "开罗",
+      "lon": 31.236,
+      "lat": 30.044
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Cairo. It is in the north of Egypt.",
+      "zh": "首都是开罗，位于埃及北部。"
+    },
+    "animal": {
+      "en": "Steppe eagle",
+      "zh": "草原雕"
+    },
+    "currency": {
+      "en": "Pound",
+      "zh": "埃及镑"
+    },
+    "landmark": {
+      "en": "Pyramids of Giza",
+      "zh": "吉萨金字塔"
+    },
+    "dish": {
+      "en": "Koshari",
+      "zh": "埃及烩饭"
+    },
+    "images": {
+      "animal": "assets/cards/egy/animal.jpg",
+      "landmark": "assets/cards/egy/landmark.jpg",
+      "dish": "assets/cards/egy/dish.jpg"
+    }
+  },
+  "EST": {
+    "capital": {
+      "en": "Tallinn",
+      "zh": "塔林",
+      "lon": 24.754,
+      "lat": 59.437
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Tallinn. It is in the north of Estonia.",
+      "zh": "首都是塔林，位于爱沙尼亚北部。"
+    },
+    "animal": {
+      "en": "Wolf",
+      "zh": "灰狼"
+    },
+    "currency": {
+      "en": "Euro",
+      "zh": "欧元"
+    },
+    "landmark": {
+      "en": "Tallinn old town",
+      "zh": "塔林老城"
+    },
+    "dish": {
+      "en": "Rye bread",
+      "zh": "黑麦面包"
+    },
+    "images": {
+      "animal": "assets/cards/est/animal.jpg",
+      "currency": "assets/cards/est/currency.jpg",
+      "landmark": "assets/cards/est/landmark.jpg",
+      "dish": "assets/cards/est/dish.jpg"
+    }
+  },
+  "FIN": {
+    "capital": {
+      "en": "Helsinki",
+      "zh": "赫尔辛基",
+      "lon": 24.938,
+      "lat": 60.17
+    },
+    "where": {
+      "en": "in the south",
+      "zh": "南部"
+    },
+    "blurb": {
+      "en": "The capital is Helsinki. It is in the south of Finland.",
+      "zh": "首都是赫尔辛基，位于芬兰南部。"
+    },
+    "animal": {
+      "en": "Brown bear",
+      "zh": "棕熊"
+    },
+    "currency": {
+      "en": "Euro",
+      "zh": "欧元"
+    },
+    "landmark": {
+      "en": "Suomenlinna",
+      "zh": "苏奥门林纳要塞"
+    },
+    "dish": {
+      "en": "Karelian pasty",
+      "zh": "卡累利阿馅饼"
+    },
+    "images": {
+      "animal": "assets/cards/fin/animal.jpg",
+      "currency": "assets/cards/fin/currency.jpg",
+      "landmark": "assets/cards/fin/landmark.jpg",
+      "dish": "assets/cards/fin/dish.jpg"
+    }
+  },
+  "GEO": {
+    "capital": {
+      "en": "Tbilisi",
+      "zh": "第比利斯",
+      "lon": 44.783,
+      "lat": 41.694
+    },
+    "where": {
+      "en": "in the southeast",
+      "zh": "东南部"
+    },
+    "blurb": {
+      "en": "The capital is Tbilisi. It is in the southeast of Georgia.",
+      "zh": "首都是第比利斯，位于格鲁吉亚东南部。"
+    },
+    "animal": {
+      "en": "Caucasian tur",
+      "zh": "高加索羱羊"
+    },
+    "currency": {
+      "en": "Lari",
+      "zh": "拉里"
+    },
+    "landmark": {
+      "en": "Gergeti Trinity",
+      "zh": "格拉特三一教堂"
+    },
+    "dish": {
+      "en": "Khachapuri",
+      "zh": "奶酪船面包"
+    },
+    "images": {
+      "animal": "assets/cards/geo/animal.jpg",
+      "currency": "assets/cards/geo/currency.jpg",
+      "landmark": "assets/cards/geo/landmark.jpg",
+      "dish": "assets/cards/geo/dish.jpg"
+    }
+  },
+  "GRC": {
+    "capital": {
+      "en": "Athens",
+      "zh": "雅典",
+      "lon": 23.728,
+      "lat": 37.984
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Athens. It is near the centre of Greece.",
+      "zh": "首都是雅典，位于希腊中部。"
+    },
+    "animal": {
+      "en": "Dolphin",
+      "zh": "海豚"
+    },
+    "currency": {
+      "en": "Euro",
+      "zh": "欧元"
+    },
+    "landmark": {
+      "en": "Parthenon",
+      "zh": "帕特农神庙"
+    },
+    "dish": {
+      "en": "Souvlaki",
+      "zh": "希腊烤肉串"
+    },
+    "images": {
+      "animal": "assets/cards/grc/animal.jpg",
+      "currency": "assets/cards/grc/currency.jpg",
+      "landmark": "assets/cards/grc/landmark.jpg",
+      "dish": "assets/cards/grc/dish.jpg"
+    }
+  },
+  "IDN": {
+    "capital": {
+      "en": "Jakarta",
+      "zh": "雅加达",
+      "lon": 106.845,
+      "lat": -6.208
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Jakarta. It is in the west of Indonesia.",
+      "zh": "首都是雅加达，位于印度尼西亚西部。"
+    },
+    "animal": {
+      "en": "Komodo dragon",
+      "zh": "科莫多巨蜥"
+    },
+    "currency": {
+      "en": "Rupiah",
+      "zh": "印尼盾"
+    },
+    "landmark": {
+      "en": "Borobudur",
+      "zh": "婆罗浮屠"
+    },
+    "dish": {
+      "en": "Nasi goreng",
+      "zh": "印尼炒饭"
+    },
+    "images": {
+      "animal": "assets/cards/idn/animal.jpg",
+      "currency": "assets/cards/idn/currency.jpg",
+      "landmark": "assets/cards/idn/landmark.jpg",
+      "dish": "assets/cards/idn/dish.jpg"
+    }
+  },
+  "IND": {
+    "capital": {
+      "en": "New Delhi",
+      "zh": "新德里",
+      "lon": 77.209,
+      "lat": 28.614
+    },
+    "where": {
+      "en": "in the northwest",
+      "zh": "西北部"
+    },
+    "blurb": {
+      "en": "The capital is New Delhi. It is in the northwest of India.",
+      "zh": "首都是新德里，位于印度西北部。"
+    },
+    "animal": {
+      "en": "Bengal tiger",
+      "zh": "孟加拉虎"
+    },
+    "currency": {
+      "en": "Rupee",
+      "zh": "卢比"
+    },
+    "landmark": {
+      "en": "Taj Mahal",
+      "zh": "泰姬陵"
+    },
+    "dish": {
+      "en": "Biryani",
+      "zh": "比尔亚尼"
+    },
+    "images": {
+      "animal": "assets/cards/ind/animal.jpg",
+      "currency": "assets/cards/ind/currency.jpg",
+      "landmark": "assets/cards/ind/landmark.jpg",
+      "dish": "assets/cards/ind/dish.jpg"
+    }
+  },
+  "IRN": {
+    "capital": {
+      "en": "Tehran",
+      "zh": "德黑兰",
+      "lon": 51.389,
+      "lat": 35.689
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Tehran. It is in the north of Iran.",
+      "zh": "首都是德黑兰，位于伊朗北部。"
+    },
+    "animal": {
+      "en": "Persian leopard",
+      "zh": "波斯豹"
+    },
+    "currency": {
+      "en": "Rial",
+      "zh": "里亚尔"
+    },
+    "landmark": {
+      "en": "Persepolis",
+      "zh": "波斯波利斯"
+    },
+    "dish": {
+      "en": "Chelo kebab",
+      "zh": "烤肉米饭"
+    },
+    "images": {
+      "animal": "assets/cards/irn/animal.jpg",
+      "landmark": "assets/cards/irn/landmark.jpg",
+      "dish": "assets/cards/irn/dish.jpg"
+    }
+  },
+  "IRQ": {
+    "capital": {
+      "en": "Baghdad",
+      "zh": "巴格达",
+      "lon": 44.366,
+      "lat": 33.315
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Baghdad. It is near the centre of Iraq.",
+      "zh": "首都是巴格达，位于伊拉克中部。"
+    },
+    "animal": {
+      "en": "Chukar partridge",
+      "zh": "石鸡"
+    },
+    "currency": {
+      "en": "Dinar",
+      "zh": "第纳尔"
+    },
+    "landmark": {
+      "en": "Ziggurat of Ur",
+      "zh": "乌尔金字形神塔"
+    },
+    "dish": {
+      "en": "Dolma",
+      "zh": "葡萄叶包饭"
+    },
+    "images": {
+      "animal": "assets/cards/irq/animal.jpg",
+      "landmark": "assets/cards/irq/landmark.jpg",
+      "dish": "assets/cards/irq/dish.jpg"
+    }
+  },
+  "ISR": {
+    "capital": {
+      "en": "Jerusalem",
+      "zh": "耶路撒冷",
+      "lon": 35.214,
+      "lat": 31.778
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Jerusalem. It is near the centre of Israel.",
+      "zh": "首都是耶路撒冷，位于以色列中部。"
+    },
+    "animal": {
+      "en": "Mountain gazelle",
+      "zh": "山瞪羚"
+    },
+    "currency": {
+      "en": "Shekel",
+      "zh": "谢克尔"
+    },
+    "landmark": {
+      "en": "Dead Sea",
+      "zh": "死海"
+    },
+    "dish": {
+      "en": "Falafel",
+      "zh": "法拉费"
+    },
+    "images": {
+      "animal": "assets/cards/isr/animal.jpg",
+      "currency": "assets/cards/isr/currency.jpg",
+      "landmark": "assets/cards/isr/landmark.jpg",
+      "dish": "assets/cards/isr/dish.jpg"
+    }
+  },
+  "JOR": {
+    "capital": {
+      "en": "Amman",
+      "zh": "安曼",
+      "lon": 35.911,
+      "lat": 31.954
+    },
+    "where": {
+      "en": "in the northwest",
+      "zh": "西北部"
+    },
+    "blurb": {
+      "en": "The capital is Amman. It is in the northwest of Jordan.",
+      "zh": "首都是安曼，位于约旦西北部。"
+    },
+    "animal": {
+      "en": "Arabian oryx",
+      "zh": "阿拉伯大羚羊"
+    },
+    "currency": {
+      "en": "Dinar",
+      "zh": "第纳尔"
+    },
+    "landmark": {
+      "en": "Petra",
+      "zh": "佩特拉"
+    },
+    "dish": {
+      "en": "Mansaf",
+      "zh": "曼萨夫"
+    },
+    "images": {
+      "animal": "assets/cards/jor/animal.jpg",
+      "landmark": "assets/cards/jor/landmark.jpg",
+      "dish": "assets/cards/jor/dish.jpg"
+    }
+  },
+  "KAZ": {
+    "capital": {
+      "en": "Astana",
+      "zh": "阿斯塔纳",
+      "lon": 71.43,
+      "lat": 51.128
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Astana. It is in the north of Kazakhstan.",
+      "zh": "首都是阿斯塔纳，位于哈萨克斯坦北部。"
+    },
+    "animal": {
+      "en": "Golden eagle",
+      "zh": "金雕"
+    },
+    "currency": {
+      "en": "Tenge",
+      "zh": "坚戈"
+    },
+    "landmark": {
+      "en": "Charyn Canyon",
+      "zh": "恰伦峡谷"
+    },
+    "dish": {
+      "en": "Beshbarmak",
+      "zh": "贝什巴尔玛克"
+    },
+    "images": {
+      "animal": "assets/cards/kaz/animal.jpg",
+      "landmark": "assets/cards/kaz/landmark.jpg",
+      "dish": "assets/cards/kaz/dish.jpg"
+    }
+  },
+  "KGZ": {
+    "capital": {
+      "en": "Bishkek",
+      "zh": "比什凯克",
+      "lon": 74.59,
+      "lat": 42.875
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Bishkek. It is in the north of Kyrgyzstan.",
+      "zh": "首都是比什凯克，位于吉尔吉斯斯坦北部。"
+    },
+    "animal": {
+      "en": "Snow leopard",
+      "zh": "雪豹"
+    },
+    "currency": {
+      "en": "Som",
+      "zh": "索姆"
+    },
+    "landmark": {
+      "en": "Issyk-Kul",
+      "zh": "伊塞克湖"
+    },
+    "dish": {
+      "en": "Laghman",
+      "zh": "拉面"
+    },
+    "images": {
+      "animal": "assets/cards/kgz/animal.jpg",
+      "landmark": "assets/cards/kgz/landmark.jpg",
+      "dish": "assets/cards/kgz/dish.jpg"
+    }
+  },
+  "KHM": {
+    "capital": {
+      "en": "Phnom Penh",
+      "zh": "金边",
+      "lon": 104.928,
+      "lat": 11.556
+    },
+    "where": {
+      "en": "in the south",
+      "zh": "南部"
+    },
+    "blurb": {
+      "en": "The capital is Phnom Penh. It is in the south of Cambodia.",
+      "zh": "首都是金边，位于柬埔寨南部。"
+    },
+    "animal": {
+      "en": "Giant ibis",
+      "zh": "大鹮"
+    },
+    "currency": {
+      "en": "Riel",
+      "zh": "瑞尔"
+    },
+    "landmark": {
+      "en": "Angkor Wat",
+      "zh": "吴哥窟"
+    },
+    "dish": {
+      "en": "Fish amok",
+      "zh": "鱼肉安木"
+    },
+    "images": {
+      "animal": "assets/cards/khm/animal.jpg",
+      "currency": "assets/cards/khm/currency.jpg",
+      "landmark": "assets/cards/khm/landmark.jpg",
+      "dish": "assets/cards/khm/dish.jpg"
+    }
+  },
+  "KOR": {
+    "capital": {
+      "en": "Seoul",
+      "zh": "首尔",
+      "lon": 126.978,
+      "lat": 37.567
+    },
+    "where": {
+      "en": "in the northwest",
+      "zh": "西北部"
+    },
+    "blurb": {
+      "en": "The capital is Seoul. It is in the northwest of South Korea.",
+      "zh": "首都是首尔，位于韩国西北部。"
+    },
+    "animal": {
+      "en": "Siberian tiger",
+      "zh": "东北虎"
+    },
+    "currency": {
+      "en": "Won",
+      "zh": "韩元"
+    },
+    "landmark": {
+      "en": "Gyeongbokgung",
+      "zh": "景福宫"
+    },
+    "dish": {
+      "en": "Bibimbap",
+      "zh": "拌饭"
+    },
+    "images": {
+      "animal": "assets/cards/kor/animal.jpg",
+      "landmark": "assets/cards/kor/landmark.jpg",
+      "dish": "assets/cards/kor/dish.jpg"
+    }
+  },
+  "KWT": {
+    "capital": {
+      "en": "Kuwait City",
+      "zh": "科威特城",
+      "lon": 47.978,
+      "lat": 29.376
+    },
+    "where": {
+      "en": "in the east",
+      "zh": "东部"
+    },
+    "blurb": {
+      "en": "The capital is Kuwait City. It is in the east of Kuwait.",
+      "zh": "首都是科威特城，位于科威特东部。"
+    },
+    "animal": {
+      "en": "Arabian camel",
+      "zh": "阿拉伯骆驼"
+    },
+    "currency": {
+      "en": "Dinar",
+      "zh": "第纳尔"
+    },
+    "landmark": {
+      "en": "Kuwait Towers",
+      "zh": "科威特塔"
+    },
+    "dish": {
+      "en": "Machboos",
+      "zh": "马赫布斯"
+    },
+    "images": {
+      "animal": "assets/cards/kwt/animal.jpg",
+      "landmark": "assets/cards/kwt/landmark.jpg",
+      "dish": "assets/cards/kwt/dish.jpg"
+    }
+  },
+  "LAO": {
+    "capital": {
+      "en": "Vientiane",
+      "zh": "万象",
+      "lon": 102.613,
+      "lat": 17.975
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Vientiane. It is in the west of Laos.",
+      "zh": "首都是万象，位于老挝西部。"
+    },
+    "animal": {
+      "en": "Asian elephant",
+      "zh": "亚洲象"
+    },
+    "currency": {
+      "en": "Kip",
+      "zh": "基普"
+    },
+    "landmark": {
+      "en": "Kuang Si Falls",
+      "zh": "光西瀑布"
+    },
+    "dish": {
+      "en": "Sticky rice",
+      "zh": "糯米饭"
+    },
+    "images": {
+      "animal": "assets/cards/lao/animal.jpg",
+      "landmark": "assets/cards/lao/landmark.jpg",
+      "dish": "assets/cards/lao/dish.jpg"
+    }
+  },
+  "LBN": {
+    "capital": {
+      "en": "Beirut",
+      "zh": "贝鲁特",
+      "lon": 35.502,
+      "lat": 33.894
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Beirut. It is in the west of Lebanon.",
+      "zh": "首都是贝鲁特，位于黎巴嫩西部。"
+    },
+    "animal": {
+      "en": "Striped hyena",
+      "zh": "条纹鬣狗"
+    },
+    "currency": {
+      "en": "Pound",
+      "zh": "黎巴嫩镑"
+    },
+    "landmark": {
+      "en": "Baalbek",
+      "zh": "巴勒贝克"
+    },
+    "dish": {
+      "en": "Tabbouleh",
+      "zh": "塔布勒沙拉"
+    },
+    "images": {
+      "animal": "assets/cards/lbn/animal.jpg",
+      "landmark": "assets/cards/lbn/landmark.jpg",
+      "dish": "assets/cards/lbn/dish.jpg"
+    }
+  },
+  "LTU": {
+    "capital": {
+      "en": "Vilnius",
+      "zh": "维尔纽斯",
+      "lon": 25.279,
+      "lat": 54.687
+    },
+    "where": {
+      "en": "in the southeast",
+      "zh": "东南部"
+    },
+    "blurb": {
+      "en": "The capital is Vilnius. It is in the southeast of Lithuania.",
+      "zh": "首都是维尔纽斯，位于立陶宛东南部。"
+    },
+    "animal": {
+      "en": "White stork",
+      "zh": "白鹳"
+    },
+    "currency": {
+      "en": "Euro",
+      "zh": "欧元"
+    },
+    "landmark": {
+      "en": "Trakai Castle",
+      "zh": "特拉凯城堡"
+    },
+    "dish": {
+      "en": "Cepelinai",
+      "zh": "土豆团子"
+    },
+    "images": {
+      "animal": "assets/cards/ltu/animal.jpg",
+      "landmark": "assets/cards/ltu/landmark.jpg",
+      "dish": "assets/cards/ltu/dish.jpg"
+    }
+  },
+  "LVA": {
+    "capital": {
+      "en": "Riga",
+      "zh": "里加",
+      "lon": 24.105,
+      "lat": 56.949
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Riga. It is near the centre of Latvia.",
+      "zh": "首都是里加，位于拉脱维亚中部。"
+    },
+    "animal": {
+      "en": "White wagtail",
+      "zh": "白鹡鸰"
+    },
+    "currency": {
+      "en": "Euro",
+      "zh": "欧元"
+    },
+    "landmark": {
+      "en": "Riga old town",
+      "zh": "里加老城"
+    },
+    "dish": {
+      "en": "Piragi",
+      "zh": "培根小面包"
+    },
+    "images": {
+      "animal": "assets/cards/lva/animal.jpg",
+      "currency": "assets/cards/lva/currency.jpg",
+      "landmark": "assets/cards/lva/landmark.jpg",
+      "dish": "assets/cards/lva/dish.jpg"
+    }
+  },
+  "MMR": {
+    "capital": {
+      "en": "Naypyidaw",
+      "zh": "内比都",
+      "lon": 96.129,
+      "lat": 19.763
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Naypyidaw. It is near the centre of Myanmar.",
+      "zh": "首都是内比都，位于缅甸中部。"
+    },
+    "animal": {
+      "en": "Asian elephant",
+      "zh": "亚洲象"
+    },
+    "currency": {
+      "en": "Kyat",
+      "zh": "缅元"
+    },
+    "landmark": {
+      "en": "Bagan",
+      "zh": "蒲甘"
+    },
+    "dish": {
+      "en": "Mohinga",
+      "zh": "鱼汤米线"
+    },
+    "images": {
+      "animal": "assets/cards/mmr/animal.jpg",
+      "currency": "assets/cards/mmr/currency.jpg",
+      "landmark": "assets/cards/mmr/landmark.jpg",
+      "dish": "assets/cards/mmr/dish.jpg"
+    }
+  },
+  "MNG": {
+    "capital": {
+      "en": "Ulaanbaatar",
+      "zh": "乌兰巴托",
+      "lon": 106.905,
+      "lat": 47.922
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Ulaanbaatar. It is near the centre of Mongolia.",
+      "zh": "首都是乌兰巴托，位于蒙古国中部。"
+    },
+    "animal": {
+      "en": "Przewalski's horse",
+      "zh": "普氏野马"
+    },
+    "currency": {
+      "en": "Tugrik",
+      "zh": "图格里克"
+    },
+    "landmark": {
+      "en": "Khongoryn Els",
+      "zh": "红戈林沙丘"
+    },
+    "dish": {
+      "en": "Buuz",
+      "zh": "蒙古包子"
+    },
+    "images": {
+      "animal": "assets/cards/mng/animal.jpg",
+      "landmark": "assets/cards/mng/landmark.jpg",
+      "dish": "assets/cards/mng/dish.jpg"
+    }
+  },
+  "MYS": {
+    "capital": {
+      "en": "Kuala Lumpur",
+      "zh": "吉隆坡",
+      "lon": 101.687,
+      "lat": 3.139
+    },
+    "where": {
+      "en": "in the southwest",
+      "zh": "西南部"
+    },
+    "blurb": {
+      "en": "The capital is Kuala Lumpur. It is in the southwest of Malaysia.",
+      "zh": "首都是吉隆坡，位于马来西亚西南部。"
+    },
+    "animal": {
+      "en": "Malayan tiger",
+      "zh": "马来虎"
+    },
+    "currency": {
+      "en": "Ringgit",
+      "zh": "林吉特"
+    },
+    "landmark": {
+      "en": "Petronas Towers",
+      "zh": "双子塔"
+    },
+    "dish": {
+      "en": "Nasi lemak",
+      "zh": "椰浆饭"
+    },
+    "images": {
+      "animal": "assets/cards/mys/animal.jpg",
+      "landmark": "assets/cards/mys/landmark.jpg",
+      "dish": "assets/cards/mys/dish.jpg"
+    }
+  },
+  "NOR": {
+    "capital": {
+      "en": "Oslo",
+      "zh": "奥斯陆",
+      "lon": 10.752,
+      "lat": 59.913
+    },
+    "where": {
+      "en": "in the south",
+      "zh": "南部"
+    },
+    "blurb": {
+      "en": "The capital is Oslo. It is in the south of Norway.",
+      "zh": "首都是奥斯陆，位于挪威南部。"
+    },
+    "animal": {
+      "en": "Moose",
+      "zh": "驼鹿"
+    },
+    "currency": {
+      "en": "Krone",
+      "zh": "克朗"
+    },
+    "landmark": {
+      "en": "Geirangerfjord",
+      "zh": "盖朗厄尔峡湾"
+    },
+    "dish": {
+      "en": "Salmon",
+      "zh": "三文鱼"
+    },
+    "images": {
+      "animal": "assets/cards/nor/animal.jpg",
+      "currency": "assets/cards/nor/currency.jpg",
+      "landmark": "assets/cards/nor/landmark.jpg",
+      "dish": "assets/cards/nor/dish.jpg"
+    }
+  },
+  "NPL": {
+    "capital": {
+      "en": "Kathmandu",
+      "zh": "加德满都",
+      "lon": 85.324,
+      "lat": 27.717
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Kathmandu. It is near the centre of Nepal.",
+      "zh": "首都是加德满都，位于尼泊尔中部。"
+    },
+    "animal": {
+      "en": "Cow",
+      "zh": "黄牛"
+    },
+    "currency": {
+      "en": "Rupee",
+      "zh": "卢比"
+    },
+    "landmark": {
+      "en": "Mount Everest",
+      "zh": "珠穆朗玛峰"
+    },
+    "dish": {
+      "en": "Dal bhat",
+      "zh": "扁豆米饭"
+    },
+    "images": {
+      "animal": "assets/cards/npl/animal.jpg",
+      "currency": "assets/cards/npl/currency.jpg",
+      "landmark": "assets/cards/npl/landmark.jpg",
+      "dish": "assets/cards/npl/dish.jpg"
+    }
+  },
+  "OMN": {
+    "capital": {
+      "en": "Muscat",
+      "zh": "马斯喀特",
+      "lon": 58.406,
+      "lat": 23.586
+    },
+    "where": {
+      "en": "in the northeast",
+      "zh": "东北部"
+    },
+    "blurb": {
+      "en": "The capital is Muscat. It is in the northeast of Oman.",
+      "zh": "首都是马斯喀特，位于阿曼东北部。"
+    },
+    "animal": {
+      "en": "Arabian oryx",
+      "zh": "阿拉伯大羚羊"
+    },
+    "currency": {
+      "en": "Rial",
+      "zh": "里亚尔"
+    },
+    "landmark": {
+      "en": "Sultan Qaboos Mosque",
+      "zh": "苏丹卡布斯大清真寺"
+    },
+    "dish": {
+      "en": "Halwa",
+      "zh": "阿曼哈尔瓦"
+    },
+    "images": {
+      "animal": "assets/cards/omn/animal.jpg",
+      "landmark": "assets/cards/omn/landmark.jpg",
+      "dish": "assets/cards/omn/dish.jpg"
+    }
+  },
+  "PAK": {
+    "capital": {
+      "en": "Islamabad",
+      "zh": "伊斯兰堡",
+      "lon": 73.048,
+      "lat": 33.684
+    },
+    "where": {
+      "en": "in the northeast",
+      "zh": "东北部"
+    },
+    "blurb": {
+      "en": "The capital is Islamabad. It is in the northeast of Pakistan.",
+      "zh": "首都是伊斯兰堡，位于巴基斯坦东北部。"
+    },
+    "animal": {
+      "en": "Markhor",
+      "zh": "捻角山羊"
+    },
+    "currency": {
+      "en": "Rupee",
+      "zh": "卢比"
+    },
+    "landmark": {
+      "en": "K2",
+      "zh": "乔戈里峰"
+    },
+    "dish": {
+      "en": "Biryani",
+      "zh": "比尔亚尼"
+    },
+    "images": {
+      "animal": "assets/cards/pak/animal.jpg",
+      "currency": "assets/cards/pak/currency.jpg",
+      "landmark": "assets/cards/pak/landmark.jpg",
+      "dish": "assets/cards/pak/dish.jpg"
+    }
+  },
+  "PNG": {
+    "capital": {
+      "en": "Port Moresby",
+      "zh": "莫尔兹比港",
+      "lon": 147.18,
+      "lat": -9.443
+    },
+    "where": {
+      "en": "in the south",
+      "zh": "南部"
+    },
+    "blurb": {
+      "en": "The capital is Port Moresby. It is in the south of Papua New Guinea.",
+      "zh": "首都是莫尔兹比港，位于巴布亚新几内亚南部。"
+    },
+    "animal": {
+      "en": "Bird-of-paradise",
+      "zh": "极乐鸟"
+    },
+    "currency": {
+      "en": "Kina",
+      "zh": "基那"
+    },
+    "landmark": {
+      "en": "Tavurvur",
+      "zh": "塔武武尔火山"
+    },
+    "dish": {
+      "en": "Mumu",
+      "zh": "地炉宴"
+    },
+    "images": {
+      "animal": "assets/cards/png/animal.jpg",
+      "currency": "assets/cards/png/currency.jpg",
+      "landmark": "assets/cards/png/landmark.jpg",
+      "dish": "assets/cards/png/dish.jpg"
+    }
+  },
+  "POL": {
+    "capital": {
+      "en": "Warsaw",
+      "zh": "华沙",
+      "lon": 21.012,
+      "lat": 52.23
+    },
+    "where": {
+      "en": "in the east",
+      "zh": "东部"
+    },
+    "blurb": {
+      "en": "The capital is Warsaw. It is in the east of Poland.",
+      "zh": "首都是华沙，位于波兰东部。"
+    },
+    "animal": {
+      "en": "European bison",
+      "zh": "欧洲野牛"
+    },
+    "currency": {
+      "en": "Zloty",
+      "zh": "兹罗提"
+    },
+    "landmark": {
+      "en": "Malbork Castle",
+      "zh": "马尔堡城堡"
+    },
+    "dish": {
+      "en": "Pierogi",
+      "zh": "波兰饺子"
+    },
+    "images": {
+      "animal": "assets/cards/pol/animal.jpg",
+      "landmark": "assets/cards/pol/landmark.jpg",
+      "dish": "assets/cards/pol/dish.jpg"
+    }
+  },
+  "PRK": {
+    "capital": {
+      "en": "Pyongyang",
+      "zh": "平壤",
+      "lon": 125.754,
+      "lat": 39.039
+    },
+    "where": {
+      "en": "in the southwest",
+      "zh": "西南部"
+    },
+    "blurb": {
+      "en": "The capital is Pyongyang. It is in the southwest of North Korea.",
+      "zh": "首都是平壤，位于朝鲜西南部。"
+    },
+    "animal": {
+      "en": "Siberian tiger",
+      "zh": "东北虎"
+    },
+    "currency": {
+      "en": "Won",
+      "zh": "朝鲜元"
+    },
+    "landmark": {
+      "en": "Mount Paektu",
+      "zh": "白头山"
+    },
+    "dish": {
+      "en": "Naengmyeon",
+      "zh": "冷面"
+    },
+    "images": {
+      "animal": "assets/cards/prk/animal.jpg",
+      "landmark": "assets/cards/prk/landmark.jpg",
+      "dish": "assets/cards/prk/dish.jpg"
+    }
+  },
+  "PSX": {
+    "capital": {
+      "en": "Ramallah",
+      "zh": "拉马拉",
+      "lon": 35.204,
+      "lat": 31.903
+    },
+    "where": {
+      "en": "in the east",
+      "zh": "东部"
+    },
+    "blurb": {
+      "en": "The capital is Ramallah. It is in the east of Palestine.",
+      "zh": "首都是拉马拉，位于巴勒斯坦东部。"
+    },
+    "animal": {
+      "en": "Palestine sunbird",
+      "zh": "巴勒斯坦太阳鸟"
+    },
+    "currency": {
+      "en": "Shekel",
+      "zh": "谢克尔"
+    },
+    "landmark": {
+      "en": "Ancient Jericho",
+      "zh": "古耶利哥"
+    },
+    "dish": {
+      "en": "Musakhan",
+      "zh": "穆萨汉烤鸡"
+    },
+    "images": {
+      "animal": "assets/cards/psx/animal.jpg",
+      "currency": "assets/cards/psx/currency.jpg",
+      "landmark": "assets/cards/psx/landmark.jpg",
+      "dish": "assets/cards/psx/dish.jpg"
+    }
+  },
+  "QAT": {
+    "capital": {
+      "en": "Doha",
+      "zh": "多哈",
+      "lon": 51.531,
+      "lat": 25.286
+    },
+    "where": {
+      "en": "in the east",
+      "zh": "东部"
+    },
+    "blurb": {
+      "en": "The capital is Doha. It is in the east of Qatar.",
+      "zh": "首都是多哈，位于卡塔尔东部。"
+    },
+    "animal": {
+      "en": "Arabian oryx",
+      "zh": "阿拉伯大羚羊"
+    },
+    "currency": {
+      "en": "Riyal",
+      "zh": "里亚尔"
+    },
+    "landmark": {
+      "en": "Museum of Islamic Art",
+      "zh": "伊斯兰艺术博物馆"
+    },
+    "dish": {
+      "en": "Machboos",
+      "zh": "马赫布斯"
+    },
+    "images": {
+      "animal": "assets/cards/qat/animal.jpg",
+      "landmark": "assets/cards/qat/landmark.jpg",
+      "dish": "assets/cards/qat/dish.jpg"
+    }
+  },
+  "RUS": {
+    "capital": {
+      "en": "Moscow",
+      "zh": "莫斯科",
+      "lon": 37.617,
+      "lat": 55.756
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Moscow. It is in the west of Russia.",
+      "zh": "首都是莫斯科，位于俄罗斯西部。"
+    },
+    "animal": {
+      "en": "Brown bear",
+      "zh": "棕熊"
+    },
+    "currency": {
+      "en": "Ruble",
+      "zh": "卢布"
+    },
+    "landmark": {
+      "en": "Lake Baikal",
+      "zh": "贝加尔湖"
+    },
+    "dish": {
+      "en": "Pelmeni",
+      "zh": "俄式饺子"
+    },
+    "images": {
+      "animal": "assets/cards/rus/animal.jpg",
+      "landmark": "assets/cards/rus/landmark.jpg",
+      "dish": "assets/cards/rus/dish.jpg"
+    }
+  },
+  "SAU": {
+    "capital": {
+      "en": "Riyadh",
+      "zh": "利雅得",
+      "lon": 46.675,
+      "lat": 24.714
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Riyadh. It is near the centre of Saudi Arabia.",
+      "zh": "首都是利雅得，位于沙特阿拉伯中部。"
+    },
+    "animal": {
+      "en": "Arabian camel",
+      "zh": "阿拉伯骆驼"
+    },
+    "currency": {
+      "en": "Riyal",
+      "zh": "里亚尔"
+    },
+    "landmark": {
+      "en": "Hegra",
+      "zh": "赫格拉"
+    },
+    "dish": {
+      "en": "Kabsa",
+      "zh": "卡布萨"
+    },
+    "images": {
+      "animal": "assets/cards/sau/animal.jpg",
+      "currency": "assets/cards/sau/currency.jpg",
+      "landmark": "assets/cards/sau/landmark.jpg",
+      "dish": "assets/cards/sau/dish.jpg"
+    }
+  },
+  "SYR": {
+    "capital": {
+      "en": "Damascus",
+      "zh": "大马士革",
+      "lon": 36.277,
+      "lat": 33.513
+    },
+    "where": {
+      "en": "in the southwest",
+      "zh": "西南部"
+    },
+    "blurb": {
+      "en": "The capital is Damascus. It is in the southwest of Syria.",
+      "zh": "首都是大马士革，位于叙利亚西南部。"
+    },
+    "animal": {
+      "en": "Arabian horse",
+      "zh": "阿拉伯马"
+    },
+    "currency": {
+      "en": "Pound",
+      "zh": "叙利亚镑"
+    },
+    "landmark": {
+      "en": "Krak des Chevaliers",
+      "zh": "骑士堡"
+    },
+    "dish": {
+      "en": "Kibbeh",
+      "zh": "基贝"
+    },
+    "images": {
+      "animal": "assets/cards/syr/animal.jpg",
+      "landmark": "assets/cards/syr/landmark.jpg",
+      "dish": "assets/cards/syr/dish.jpg"
+    }
+  },
+  "THA": {
+    "capital": {
+      "en": "Bangkok",
+      "zh": "曼谷",
+      "lon": 100.502,
+      "lat": 13.756
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Bangkok. It is near the centre of Thailand.",
+      "zh": "首都是曼谷，位于泰国中部。"
+    },
+    "animal": {
+      "en": "Asian elephant",
+      "zh": "亚洲象"
+    },
+    "currency": {
+      "en": "Baht",
+      "zh": "泰铢"
+    },
+    "landmark": {
+      "en": "Wat Arun",
+      "zh": "郑王庙"
+    },
+    "dish": {
+      "en": "Pad thai",
+      "zh": "泰式炒河粉"
+    },
+    "images": {
+      "animal": "assets/cards/tha/animal.jpg",
+      "currency": "assets/cards/tha/currency.jpg",
+      "landmark": "assets/cards/tha/landmark.jpg",
+      "dish": "assets/cards/tha/dish.jpg"
+    }
+  },
+  "TJK": {
+    "capital": {
+      "en": "Dushanbe",
+      "zh": "杜尚别",
+      "lon": 68.787,
+      "lat": 38.56
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Dushanbe. It is in the west of Tajikistan.",
+      "zh": "首都是杜尚别，位于塔吉克斯坦西部。"
+    },
+    "animal": {
+      "en": "Snow leopard",
+      "zh": "雪豹"
+    },
+    "currency": {
+      "en": "Somoni",
+      "zh": "索莫尼"
+    },
+    "landmark": {
+      "en": "Iskanderkul",
+      "zh": "伊斯坎德尔湖"
+    },
+    "dish": {
+      "en": "Plov",
+      "zh": "抓饭"
+    },
+    "images": {
+      "animal": "assets/cards/tjk/animal.jpg",
+      "currency": "assets/cards/tjk/currency.jpg",
+      "landmark": "assets/cards/tjk/landmark.jpg",
+      "dish": "assets/cards/tjk/dish.jpg"
+    }
+  },
+  "TKM": {
+    "capital": {
+      "en": "Ashgabat",
+      "zh": "阿什哈巴德",
+      "lon": 58.383,
+      "lat": 37.937
+    },
+    "where": {
+      "en": "in the south",
+      "zh": "南部"
+    },
+    "blurb": {
+      "en": "The capital is Ashgabat. It is in the south of Turkmenistan.",
+      "zh": "首都是阿什哈巴德，位于土库曼斯坦南部。"
+    },
+    "animal": {
+      "en": "Akhal-Teke horse",
+      "zh": "阿哈尔捷金马"
+    },
+    "currency": {
+      "en": "Manat",
+      "zh": "马纳特"
+    },
+    "landmark": {
+      "en": "Darvaza crater",
+      "zh": "达尔瓦扎燃气坑"
+    },
+    "dish": {
+      "en": "Plov",
+      "zh": "抓饭"
+    },
+    "images": {
+      "animal": "assets/cards/tkm/animal.jpg",
+      "currency": "assets/cards/tkm/currency.jpg",
+      "landmark": "assets/cards/tkm/landmark.jpg",
+      "dish": "assets/cards/tkm/dish.jpg"
+    }
+  },
+  "TLS": {
+    "capital": {
+      "en": "Dili",
+      "zh": "帝力",
+      "lon": 125.578,
+      "lat": -8.556
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Dili. It is in the north of Timor-Leste.",
+      "zh": "首都是帝力，位于东帝汶北部。"
+    },
+    "animal": {
+      "en": "Saltwater crocodile",
+      "zh": "湾鳄"
+    },
+    "currency": {
+      "en": "US dollar",
+      "zh": "美元"
+    },
+    "landmark": {
+      "en": "Cristo Rei",
+      "zh": "基督像"
+    },
+    "dish": {
+      "en": "Grilled fish",
+      "zh": "烤鱼"
+    },
+    "images": {
+      "animal": "assets/cards/tls/animal.jpg",
+      "landmark": "assets/cards/tls/landmark.jpg",
+      "dish": "assets/cards/tls/dish.jpg"
+    }
+  },
+  "TUR": {
+    "capital": {
+      "en": "Ankara",
+      "zh": "安卡拉",
+      "lon": 32.854,
+      "lat": 39.92
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Ankara. It is in the north of Turkey.",
+      "zh": "首都是安卡拉，位于土耳其北部。"
+    },
+    "animal": {
+      "en": "Turkish Angora",
+      "zh": "土耳其安哥拉猫"
+    },
+    "currency": {
+      "en": "Lira",
+      "zh": "里拉"
+    },
+    "landmark": {
+      "en": "Cappadocia",
+      "zh": "卡帕多西亚"
+    },
+    "dish": {
+      "en": "Kebab",
+      "zh": "烤肉"
+    },
+    "images": {
+      "animal": "assets/cards/tur/animal.jpg",
+      "currency": "assets/cards/tur/currency.jpg",
+      "landmark": "assets/cards/tur/landmark.jpg",
+      "dish": "assets/cards/tur/dish.jpg"
+    }
+  },
+  "UKR": {
+    "capital": {
+      "en": "Kyiv",
+      "zh": "基辅",
+      "lon": 30.524,
+      "lat": 50.45
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Kyiv. It is in the north of Ukraine.",
+      "zh": "首都是基辅，位于乌克兰北部。"
+    },
+    "animal": {
+      "en": "White stork",
+      "zh": "白鹳"
+    },
+    "currency": {
+      "en": "Hryvnia",
+      "zh": "格里夫纳"
+    },
+    "landmark": {
+      "en": "Kamianets-Podilskyi Castle",
+      "zh": "卡缅涅茨城堡"
+    },
+    "dish": {
+      "en": "Borscht",
+      "zh": "罗宋汤"
+    },
+    "images": {
+      "animal": "assets/cards/ukr/animal.jpg",
+      "currency": "assets/cards/ukr/currency.jpg",
+      "landmark": "assets/cards/ukr/landmark.jpg",
+      "dish": "assets/cards/ukr/dish.jpg"
+    }
+  },
+  "UZB": {
+    "capital": {
+      "en": "Tashkent",
+      "zh": "塔什干",
+      "lon": 69.24,
+      "lat": 41.299
+    },
+    "where": {
+      "en": "in the east",
+      "zh": "东部"
+    },
+    "blurb": {
+      "en": "The capital is Tashkent. It is in the east of Uzbekistan.",
+      "zh": "首都是塔什干，位于乌兹别克斯坦东部。"
+    },
+    "animal": {
+      "en": "Bukhara deer",
+      "zh": "布哈拉鹿"
+    },
+    "currency": {
+      "en": "Som",
+      "zh": "索姆"
+    },
+    "landmark": {
+      "en": "Registan",
+      "zh": "列吉斯坦"
+    },
+    "dish": {
+      "en": "Plov",
+      "zh": "抓饭"
+    },
+    "images": {
+      "animal": "assets/cards/uzb/animal.jpg",
+      "landmark": "assets/cards/uzb/landmark.jpg",
+      "dish": "assets/cards/uzb/dish.jpg"
+    }
+  },
+  "VNM": {
+    "capital": {
+      "en": "Hanoi",
+      "zh": "河内",
+      "lon": 105.854,
+      "lat": 21.029
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Hanoi. It is in the north of Vietnam.",
+      "zh": "首都是河内，位于越南北部。"
+    },
+    "animal": {
+      "en": "Water buffalo",
+      "zh": "水牛"
+    },
+    "currency": {
+      "en": "Dong",
+      "zh": "越南盾"
+    },
+    "landmark": {
+      "en": "Ha Long Bay",
+      "zh": "下龙湾"
+    },
+    "dish": {
+      "en": "Pho",
+      "zh": "越南粉"
+    },
+    "images": {
+      "animal": "assets/cards/vnm/animal.jpg",
+      "landmark": "assets/cards/vnm/landmark.jpg",
+      "dish": "assets/cards/vnm/dish.jpg"
+    }
+  },
+  "YEM": {
+    "capital": {
+      "en": "Sana'a",
+      "zh": "萨那",
+      "lon": 44.207,
+      "lat": 15.355
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Sana'a. It is in the west of Yemen.",
+      "zh": "首都是萨那，位于也门西部。"
+    },
+    "animal": {
+      "en": "Arabian leopard",
+      "zh": "阿拉伯豹"
+    },
+    "currency": {
+      "en": "Rial",
+      "zh": "里亚尔"
+    },
+    "landmark": {
+      "en": "Socotra",
+      "zh": "索科特拉龙血树"
+    },
+    "dish": {
+      "en": "Saltah",
+      "zh": "萨尔塔炖菜"
+    },
+    "images": {
+      "animal": "assets/cards/yem/animal.jpg",
+      "landmark": "assets/cards/yem/landmark.jpg",
+      "dish": "assets/cards/yem/dish.jpg"
+    }
+  },
+  "BHR": {
+    "capital": {
+      "en": "Manama",
+      "zh": "麦纳麦",
+      "lon": 50.586,
+      "lat": 26.223
+    },
+    "where": {
+      "en": "in the north",
+      "zh": "北部"
+    },
+    "blurb": {
+      "en": "The capital is Manama. It is in the north of Bahrain.",
+      "zh": "首都是麦纳麦，位于巴林北部。"
+    },
+    "animal": {
+      "en": "White-eared bulbul",
+      "zh": "白耳鹎"
+    },
+    "currency": {
+      "en": "Dinar",
+      "zh": "第纳尔"
+    },
+    "landmark": {
+      "en": "Bahrain Fort",
+      "zh": "巴林堡"
+    },
+    "dish": {
+      "en": "Balaleet",
+      "zh": "甜蛋面"
+    },
+    "images": {
+      "animal": "assets/cards/bhr/animal.jpg",
+      "currency": "assets/cards/bhr/currency.jpg",
+      "landmark": "assets/cards/bhr/landmark.jpg",
+      "dish": "assets/cards/bhr/dish.jpg"
+    }
+  },
+  "CYP": {
+    "capital": {
+      "en": "Nicosia",
+      "zh": "尼科西亚",
+      "lon": 33.382,
+      "lat": 35.186
+    },
+    "where": {
+      "en": "near the centre",
+      "zh": "中部"
+    },
+    "blurb": {
+      "en": "The capital is Nicosia. It is near the centre of Cyprus.",
+      "zh": "首都是尼科西亚，位于塞浦路斯中部。"
+    },
+    "animal": {
+      "en": "Cyprus mouflon",
+      "zh": "塞浦路斯野羊"
+    },
+    "currency": {
+      "en": "Euro",
+      "zh": "欧元"
+    },
+    "landmark": {
+      "en": "Kourion",
+      "zh": "库里翁"
+    },
+    "dish": {
+      "en": "Halloumi",
+      "zh": "哈卢米"
+    },
+    "images": {
+      "animal": "assets/cards/cyp/animal.jpg",
+      "currency": "assets/cards/cyp/currency.jpg",
+      "landmark": "assets/cards/cyp/landmark.jpg",
+      "dish": "assets/cards/cyp/dish.jpg"
+    }
+  },
+  "JPN": {
+    "capital": {
+      "en": "Tokyo",
+      "zh": "东京",
+      "lon": 139.692,
+      "lat": 35.69
+    },
+    "where": {
+      "en": "on the east coast",
+      "zh": "东岸"
+    },
+    "blurb": {
+      "en": "The capital is Tokyo. It is on the east coast of Japan.",
+      "zh": "首都是东京，位于日本东岸。"
+    },
+    "animal": {
+      "en": "Japanese macaque",
+      "zh": "日本猕猴"
+    },
+    "currency": {
+      "en": "Yen",
+      "zh": "日元"
+    },
+    "landmark": {
+      "en": "Mount Fuji",
+      "zh": "富士山"
+    },
+    "dish": {
+      "en": "Ramen",
+      "zh": "拉面"
+    },
+    "images": {
+      "animal": "assets/cards/jpn/animal.jpg",
+      "currency": "assets/cards/jpn/currency.jpg",
+      "landmark": "assets/cards/jpn/landmark.jpg",
+      "dish": "assets/cards/jpn/dish.jpg"
+    }
+  },
+  "LKA": {
+    "capital": {
+      "en": "Sri Jayewardenepura Kotte",
+      "zh": "斯里贾亚瓦德纳普拉科特",
+      "lon": 79.918,
+      "lat": 6.894
+    },
+    "where": {
+      "en": "in the southwest",
+      "zh": "西南部"
+    },
+    "blurb": {
+      "en": "The capital is Sri Jayewardenepura Kotte. It is in the southwest of Sri Lanka.",
+      "zh": "首都是斯里贾亚瓦德纳普拉科特，位于斯里兰卡西南部。"
+    },
+    "animal": {
+      "en": "Sri Lankan elephant",
+      "zh": "斯里兰卡象"
+    },
+    "currency": {
+      "en": "Rupee",
+      "zh": "卢比"
+    },
+    "landmark": {
+      "en": "Sigiriya",
+      "zh": "狮子岩"
+    },
+    "dish": {
+      "en": "Rice and curry",
+      "zh": "咖喱饭"
+    },
+    "images": {
+      "animal": "assets/cards/lka/animal.jpg",
+      "currency": "assets/cards/lka/currency.jpg",
+      "landmark": "assets/cards/lka/landmark.jpg",
+      "dish": "assets/cards/lka/dish.jpg"
+    }
+  },
+  "PHL": {
+    "capital": {
+      "en": "Manila",
+      "zh": "马尼拉",
+      "lon": 120.984,
+      "lat": 14.599
+    },
+    "where": {
+      "en": "in the west",
+      "zh": "西部"
+    },
+    "blurb": {
+      "en": "The capital is Manila. It is in the west of the Philippines.",
+      "zh": "首都是马尼拉，位于菲律宾西部。"
+    },
+    "animal": {
+      "en": "Philippine eagle",
+      "zh": "菲律宾雕"
+    },
+    "currency": {
+      "en": "Peso",
+      "zh": "比索"
+    },
+    "landmark": {
+      "en": "Chocolate Hills",
+      "zh": "巧克力山"
+    },
+    "dish": {
+      "en": "Adobo",
+      "zh": "阿多博"
+    },
+    "images": {
+      "animal": "assets/cards/phl/animal.jpg",
+      "currency": "assets/cards/phl/currency.jpg",
+      "landmark": "assets/cards/phl/landmark.jpg",
+      "dish": "assets/cards/phl/dish.jpg"
+    }
+  },
+  "SGP": {
+    "capital": {
+      "en": "Singapore",
+      "zh": "新加坡",
+      "lon": 103.82,
+      "lat": 1.352
+    },
+    "where": {
+      "en": "a city-state",
+      "zh": "城市国家"
+    },
+    "blurb": {
+      "en": "The capital is Singapore. The whole country is one city.",
+      "zh": "首都是新加坡，整个国家就是一座城市。"
+    },
+    "animal": {
+      "en": "Smooth-coated otter",
+      "zh": "江獭"
+    },
+    "currency": {
+      "en": "Singapore dollar",
+      "zh": "新加坡元"
+    },
+    "landmark": {
+      "en": "Gardens by the Bay",
+      "zh": "滨海湾花园"
+    },
+    "dish": {
+      "en": "Hainanese chicken rice",
+      "zh": "海南鸡饭"
+    },
+    "images": {
+      "animal": "assets/cards/sgp/animal.jpg",
+      "currency": "assets/cards/sgp/currency.jpg",
+      "landmark": "assets/cards/sgp/landmark.jpg",
+      "dish": "assets/cards/sgp/dish.jpg"
+    }
+  }
+}
