@@ -9,7 +9,9 @@ uniform float uKmpp;
 uniform vec2 uCenter;
 uniform float uScale;
 uniform vec2 uPxOffset;
+uniform vec4 uBox;
 varying vec2 vLL;
+varying vec2 vUV;
 void main() {
   vec2 km = uCenter + uScale * aKm;
   vec2 px = (km - uOrigin) / uKmpp;
@@ -18,6 +20,7 @@ void main() {
   vec2 ndc = vec2(px.x / uSize.x * 2.0 - 1.0, 1.0 - px.y / uSize.y * 2.0);
   gl_Position = vec4(ndc, 0.0, 1.0);
   vLL = aLL;
+  vUV = (aKm - uBox.xy) / max(uBox.zw, vec2(0.0001));
 }`;
 
 const PIECE_FS = `
@@ -25,15 +28,17 @@ precision mediump float;
 uniform sampler2D uTex;
 uniform float uShadow;
 uniform float uAlpha;
+uniform float uMap;
 varying vec2 vLL;
+varying vec2 vUV;
 void main() {
   if (uShadow > 0.5) {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.38 * uAlpha);
     return;
   }
-  float u = fract((vLL.x + 180.0) / 360.0);
-  float v = (vLL.y + 90.0) / 180.0;
-  vec3 c = texture2D(uTex, vec2(u, v)).rgb;
+  vec2 uvRelief = vec2(fract((vLL.x + 180.0) / 360.0), clamp((vLL.y + 90.0) / 180.0, 0.0, 1.0));
+  vec2 uvSkin = clamp(vUV, 0.0, 1.0);
+  vec3 c = texture2D(uTex, mix(uvRelief, uvSkin, uMap)).rgb;
   gl_FragColor = vec4(c * uAlpha, uAlpha);
 }`;
 
@@ -151,8 +156,11 @@ export function createView(canvas, options = {}) {
     uCenter: gl.getUniformLocation(pieceProg, "uCenter"),
     uScale: gl.getUniformLocation(pieceProg, "uScale"),
     uPxOffset: gl.getUniformLocation(pieceProg, "uPxOffset"),
+    uBox: gl.getUniformLocation(pieceProg, "uBox"),
     uShadow: gl.getUniformLocation(pieceProg, "uShadow"),
     uAlpha: gl.getUniformLocation(pieceProg, "uAlpha"),
+    uMap: gl.getUniformLocation(pieceProg, "uMap"),
+    uTex: gl.getUniformLocation(pieceProg, "uTex"),
   };
   const globeLoc = {
     aLL: gl.getAttribLocation(globeProg, "aLL"),
@@ -171,7 +179,18 @@ export function createView(canvas, options = {}) {
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, sphere.idx, gl.STATIC_DRAW);
 
   const tex = gl.createTexture();
+  const skinTex = new WeakMap();
   let ready = false;
+
+  function uploadTexture(target, source) {
+    gl.bindTexture(gl.TEXTURE_2D, target);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  }
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -204,8 +223,6 @@ export function createView(canvas, options = {}) {
   }
 
   function setRelief(image) {
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     let source = image;
     const max = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 4096;
     if (image.width > max || image.height > max) {
@@ -216,12 +233,19 @@ export function createView(canvas, options = {}) {
       c.getContext("2d").drawImage(image, 0, 0, c.width, c.height);
       source = c;
     }
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    uploadTexture(tex, source);
     ready = true;
+  }
+
+  function prepareSkin(mesh, key, canvas) {
+    let bag = skinTex.get(mesh);
+    if (!bag) skinTex.set(mesh, bag = new Map());
+    const hit = bag.get(key);
+    if (hit) return hit;
+    const uploaded = gl.createTexture();
+    uploadTexture(uploaded, canvas);
+    bag.set(key, uploaded);
+    return uploaded;
   }
 
   function resize(cssW, cssH, ratio) {
@@ -248,7 +272,7 @@ export function createView(canvas, options = {}) {
     gl.uniform2f(pieceLoc.uSize, view.width, view.height);
     gl.uniform1f(pieceLoc.uKmpp, view.kmPerPx);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.uniform1i(pieceLoc.uTex, 0);
     const shadow = options.shadow !== false;
     for (const entry of entries) {
       const mesh = entry.mesh;
@@ -260,6 +284,13 @@ export function createView(canvas, options = {}) {
       gl.enableVertexAttribArray(pieceLoc.aLL);
       gl.vertexAttribPointer(pieceLoc.aKm, 2, gl.FLOAT, false, 16, 0);
       gl.vertexAttribPointer(pieceLoc.aLL, 2, gl.FLOAT, false, 16, 8);
+      gl.bindTexture(gl.TEXTURE_2D, entry.tex || tex);
+      gl.uniform1f(pieceLoc.uMap, entry.tex ? 1 : 0);
+      gl.uniform4f(
+        pieceLoc.uBox,
+        mesh.relMinX, mesh.relMinY,
+        mesh.width || 1, mesh.height || 1,
+      );
       gl.uniform2f(pieceLoc.uCenter, entry.cx, entry.cy);
       gl.uniform1f(pieceLoc.uScale, entry.scale);
       const alpha = entry.alpha == null ? 1 : entry.alpha;
@@ -292,5 +323,5 @@ export function createView(canvas, options = {}) {
     gl.drawElements(gl.TRIANGLES, sphere.idx.length, gl.UNSIGNED_SHORT, 0);
   }
 
-  return { gl, setRelief, resize, drawPieces, drawGlobe };
+  return { gl, setRelief, prepareSkin, resize, drawPieces, drawGlobe };
 }

@@ -1,6 +1,7 @@
 import { makeLaea, buildMesh, boundsOfFeature, pairKey, screenPath, absLinePath } from "./geo.js";
 import { createView } from "./gl.js";
 import { prepareWorldStrokes, drawGlobeStrokes } from "./strokes.js";
+import { skinsFor, skinSources, readSkin, writeSkin, clipSkin } from "./skins.js";
 import { LANGS, pick, line, htmlStack, esc, getLang, setLang, onLangChange, activeLangs, langButtonText, scriptLang } from "./i18n.js";
 
 const SIZE_TOL = 0.07;
@@ -105,6 +106,9 @@ let meshes = new Map();
 let seamKm = new Map();
 let pieces = new Map();
 let selected = null;
+let focusIso = null;
+const skinImages = new Map();
+const skinChoice = new Map();
 let spaceDown = false;
 let drag = null;
 let busy = false;
@@ -200,7 +204,7 @@ async function init() {
     mainGL = createView($("gl"));
     cardGL = createView($("card-gl"));
     thumbGL = createView(document.createElement("canvas"), { preserve: true });
-    const [world, shapes, borderData, riverData, cardData, coastData, relief] = await Promise.all([
+    const [world, shapes, borderData, riverData, cardData, coastData, relief, ...skins] = await Promise.all([
       loadJSON("data/world.json"),
       loadJSON("data/shapes.json"),
       loadJSON("data/borders.json"),
@@ -208,12 +212,14 @@ async function init() {
       loadJSON("data/cards.json"),
       loadJSON("data/coast.json"),
       loadImage("assets/relief.jpg"),
+      ...skinSources().map((src) => loadImage(src).then((img) => ({ src, img })).catch(() => null)),
     ]);
     borders = borderData;
     rivers = riverData;
     coastLonLat = coastData;
     cards = cardData;
     reliefImage = relief;
+    for (const skin of skins) if (skin) skinImages.set(skin.src, skin.img);
     worldFeatures = world.features;
     for (const f of worldFeatures) f._b = boundsOfFeature(f);
     worldStrokes = prepareWorldStrokes(worldFeatures);
@@ -293,6 +299,9 @@ function bind() {
     if (e.target.closest("button")) return;
     advanceReward(true);
   });
+  $("skin-bar").addEventListener("pointerdown", (e) => e.stopPropagation());
+  $("skin-prev").addEventListener("click", () => cycleSkin(-1));
+  $("skin-next").addEventListener("click", () => cycleSkin(1));
   buildPhotoGrid();
 }
 
@@ -342,6 +351,7 @@ function setMode(next) {
   syncGuide();
   syncCardsButton();
   syncTools();
+  syncSkinBar();
 }
 
 function syncGuide() {
@@ -498,6 +508,7 @@ function applyLanguage() {
   refreshTrayNames();
   if (mode === "puzzle" && guideIds.length) buildGuide(guideIds);
   paintAsk();
+  syncSkinBar();
   if (cardsOpen) renderCard();
   if (!$("reward").hidden) renderReward();
   requestDraw();
@@ -832,6 +843,8 @@ function enterPuzzle(iso) {
   const centreMesh = meshes.get(iso);
   pieces.set(iso, { iso, cx: centreMesh.cx, cy: centreMesh.cy, scale: 1, locked: true, fixed: true });
   selected = null;
+  focusIso = iso;
+  syncSkinBar();
   const trays = trayLayout(iso, nbs);
   if (!trays.bottom.length) appEl.classList.add("one-tray");
   buildTrays(trays, false);
@@ -887,6 +900,8 @@ function enterBuild(iso) {
   const startMesh = meshes.get(iso);
   pieces.set(iso, { iso, cx: startMesh.cx, cy: startMesh.cy, scale: 1, locked: true, fixed: true });
   selected = null;
+  focusIso = iso;
+  syncSkinBar();
   const rest = shuffle(need.filter((id) => id !== iso));
   buildTrays({ top: rest, bottom: [] }, true);
   buildGuide(need);
@@ -927,7 +942,9 @@ function shuffle(list) {
 }
 
 function thumbHtml(iso) {
-  const cached = thumbCache.get(iso);
+  const skin = skinRecord(iso);
+  const thumbKey = `${iso}|${skin.id}`;
+  const cached = thumbCache.get(thumbKey);
   if (cached) return cached;
   const mesh = meshes.get(iso);
   const size = 256;
@@ -941,12 +958,18 @@ function thumbHtml(iso) {
     originY: mesh.cy - (size * kmpp) / 2,
   };
   thumbGL.resize(size, size);
-  thumbGL.drawPieces([{ mesh, cx: mesh.cx, cy: mesh.cy, scale: 1 }], thumbView, { shadow: false });
+  thumbGL.drawPieces([pieceDraw({ iso, cx: mesh.cx, cy: mesh.cy, scale: 1 }, thumbGL)], thumbView, { shadow: false });
   const url = thumbGL.gl.canvas.toDataURL("image/png");
   const outline = screenPath(mesh.rings, { cx: mesh.cx, cy: mesh.cy, scale: 1 }, thumbView);
   const html = `<span class="thumb"><img alt="" src="${url}"><svg viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${outline}"/></svg></span>`;
-  thumbCache.set(iso, html);
+  thumbCache.set(thumbKey, html);
   return html;
+}
+
+function refreshTrayThumb(iso) {
+  document.querySelectorAll(`.tray-tile[data-code="${iso}"] .thumb`).forEach((el) => {
+    el.outerHTML = thumbHtml(iso);
+  });
 }
 
 function buildTrays(trays, nameless) {
@@ -1038,6 +1061,66 @@ function fitBox(minX, minY, maxX, maxY, pad) {
   view.originY = cy - (h * view.kmPerPx) / 2;
 }
 
+function chosenSkin(iso) {
+  if (!skinChoice.has(iso)) skinChoice.set(iso, readSkin(iso));
+  return skinChoice.get(iso);
+}
+
+function skinRecord(iso) {
+  const list = skinsFor(iso);
+  const id = chosenSkin(iso);
+  return list.find((skin) => skin.id === id) || list[0];
+}
+
+function pieceDraw(piece, glView) {
+  const mesh = meshes.get(piece.iso);
+  const entry = { mesh, cx: piece.cx, cy: piece.cy, scale: piece.scale };
+  const skin = skinRecord(piece.iso);
+  const image = skin.src ? skinImages.get(skin.src) : null;
+  if (image && mesh && mesh.width > 0 && mesh.height > 0) {
+    entry.tex = glView.prepareSkin(mesh, skin.id, clipSkin(image, mesh));
+  }
+  return entry;
+}
+
+function setFocus(iso) {
+  const next = iso || null;
+  const changed = focusIso !== next;
+  focusIso = next;
+  syncSkinBar();
+  if (changed) requestDraw();
+}
+
+function syncSkinBar() {
+  const bar = $("skin-bar");
+  if (!bar) return;
+  const list = mode === "puzzle" && focusIso ? skinsFor(focusIso) : [];
+  const show = list.length > 1;
+  bar.hidden = !show;
+  if (!show) return;
+  const skin = skinRecord(focusIso);
+  $("skin-name").textContent = line(skin.label);
+  $("skin-prev").setAttribute("aria-label", pick("skinPrev").main);
+  $("skin-next").setAttribute("aria-label", pick("skinNext").main);
+}
+
+function cycleSkin(dir) {
+  if (mode !== "puzzle" || !focusIso) return;
+  const list = skinsFor(focusIso);
+  if (list.length < 2) return;
+  let index = list.findIndex((skin) => skin.id === chosenSkin(focusIso));
+  if (index < 0) index = 0;
+  index = (index + dir + list.length) % list.length;
+  skinChoice.set(focusIso, list[index].id);
+  writeSkin(focusIso, list[index].id);
+  for (const key of [...thumbCache.keys()]) {
+    if (key === focusIso || key.startsWith(focusIso + "|")) thumbCache.delete(key);
+  }
+  refreshTrayThumb(focusIso);
+  syncSkinBar();
+  requestDraw();
+}
+
 function drawOrder() {
   const list = [];
   if (pieces.has(centreIso)) list.push(pieces.get(centreIso));
@@ -1061,9 +1144,7 @@ function draw() {
       resetOverlay();
     }
     const order = drawOrder();
-    mainGL.drawPieces(order.map((p) => ({
-      mesh: meshes.get(p.iso), cx: p.cx, cy: p.cy, scale: p.scale,
-    })), view, { shadow: !interacting });
+    mainGL.drawPieces(order.map((p) => pieceDraw(p, mainGL)), view, { shadow: !interacting });
     if (interacting) {
       playfield.classList.add("interacting");
       drawFastPuzzleLines(order);
@@ -1189,6 +1270,36 @@ function drawFastPuzzleLines(order) {
   }
   ctx.strokeStyle = "rgba(255,255,255,0.82)";
   ctx.stroke();
+  const focus = focusIso && order.find((piece) => piece.iso === focusIso);
+  if (focus) strokeFocusGlow(ctx, focus);
+}
+
+function strokeFocusGlow(ctx, piece) {
+  const mesh = meshes.get(piece.iso);
+  if (!mesh) return;
+  ctx.save();
+  ctx.beginPath();
+  for (const ring of coarseRings(mesh)) {
+    for (let i = 0; i < ring.length; i += 1) {
+      const x = piece.cx + piece.scale * ring[i][0];
+      const y = piece.cy + piece.scale * ring[i][1];
+      const sx = (x - view.originX) / view.kmPerPx;
+      const sy = view.height - (y - view.originY) / view.kmPerPx;
+      if (i === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    }
+    ctx.closePath();
+  }
+  ctx.shadowColor = "rgba(210, 140, 52, 0.55)";
+  ctx.shadowBlur = 10;
+  ctx.lineWidth = 7;
+  ctx.strokeStyle = "rgba(226, 168, 78, 0.28)";
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = "rgba(255, 214, 150, 0.72)";
+  ctx.stroke();
+  ctx.restore();
 }
 
 function ensureMeshPaths(mesh) {
@@ -1213,10 +1324,20 @@ function syncPuzzleLines(order) {
       if (!mesh.riverD) river.setAttribute("visibility", "hidden");
       const outline = document.createElementNS(SVGNS, "path");
       outline.setAttribute("d", mesh.ringD);
-      g.append(river, outline);
+      const glow = document.createElementNS(SVGNS, "path");
+      glow.setAttribute("class", "border-glow");
+      glow.setAttribute("d", mesh.ringD);
+      glow.setAttribute("vector-effect", "non-scaling-stroke");
+      g.dataset.iso = piece.iso;
+      g.append(river, glow, outline);
       linesEl.append(g);
-      node = { g, outline, cls: "" };
+      node = { g, outline, glow, cls: "", glowOn: false };
       lineNodes.set(piece.iso, node);
+    }
+    const glowOn = piece.iso === focusIso;
+    if (node.glow && node.glowOn !== glowOn) {
+      node.glow.classList.toggle("on", glowOn);
+      node.glowOn = glowOn;
     }
     const cls = `outline${piece.fixed ? " centre" : ""}${piece.locked ? " locked" : ""}`;
     if (node.cls !== cls) {
@@ -1754,6 +1875,7 @@ function onPlayDown(e) {
   if (e.button !== 0) return;
   const iso = hitTest(p.x, p.y);
   if (!iso) { startPan(e); return; }
+  setFocus(iso);
   const piece = pieces.get(iso);
   if (piece.locked) { startPlacedGesture(e, iso); return; }
   startMove(e, iso);
@@ -1912,6 +2034,7 @@ function createPiece(iso, clientX, clientY) {
   pieces.set(iso, piece);
   markTray(iso, true);
   selected = iso;
+  setFocus(iso);
   showPct(piece, clientX, clientY);
   requestDraw();
   return piece;
@@ -2669,6 +2792,19 @@ window.__game = {
   },
   get playKind() { return playKind; },
   get centre() { return centreIso; },
+  get focus() { return focusIso; },
+  get skin() { return focusIso ? chosenSkin(focusIso) : null; },
+  setSkin(id) {
+    if (!focusIso) return null;
+    const list = skinsFor(focusIso);
+    if (!list.some((skin) => skin.id === id)) return chosenSkin(focusIso);
+    skinChoice.set(focusIso, id);
+    writeSkin(focusIso, id);
+    syncSkinBar();
+    requestDraw();
+    return id;
+  },
+  cycleSkin(dir) { cycleSkin(dir || 1); return chosenSkin(focusIso); },
   get guideOpen() { return guideOpen; },
   get progress() {
     if (playKind !== "build") return null;

@@ -144,6 +144,23 @@ button { font: inherit; cursor: pointer; }
 .outline { fill: none; stroke: rgba(255, 255, 255, 0.78); stroke-width: 1.15; stroke-linejoin: round; }
 .outline.centre { stroke: rgba(255, 226, 170, 0.95); stroke-width: 1.45; }
 .outline.locked { stroke: rgba(232, 255, 246, 0.92); }
+.border-glow {
+  fill: none;
+  stroke: none;
+  visibility: hidden;
+  pointer-events: none;
+}
+.border-glow.on {
+  visibility: visible;
+  stroke: rgba(226, 168, 78, 0.62);
+  stroke-width: 5.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  filter:
+    drop-shadow(0 0 1.2px rgba(255, 214, 140, 0.9))
+    drop-shadow(0 0 6px rgba(196, 122, 42, 0.42));
+}
 .river { fill: none; stroke: rgba(170, 214, 255, 0.9); stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
 #coasts { pointer-events: none; }
 .coast-wash, .coast-line, .coast-ripple { fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -234,7 +251,43 @@ button { font: inherit; cursor: pointer; }
 }
 .handle.ne, .handle.sw { cursor: nesw-resize; }
 
-#back, #title, #hint, #toast, #island-note, #puzzle-tools, #mode-choice { position: absolute; z-index: 4; }
+#back, #title, #hint, #toast, #island-note, #puzzle-tools, #mode-choice, #skin-bar { position: absolute; z-index: 4; }
+#skin-bar {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(214, 184, 122, 0.35);
+  border-radius: 999px;
+  background: rgba(8, 16, 24, 0.62);
+  color: #f3ead6;
+  backdrop-filter: blur(6px);
+}
+#skin-bar[hidden] { display: none; }
+#skin-bar button {
+  width: 28px;
+  height: 26px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #f0e2c4;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+#skin-bar button:hover { background: rgba(255, 255, 255, 0.08); }
+#skin-name {
+  min-width: 4.5em;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(243, 234, 214, 0.82);
+  padding: 0 4px;
+}
 #puzzle-tools {
   top: 12px;
   right: 12px;
