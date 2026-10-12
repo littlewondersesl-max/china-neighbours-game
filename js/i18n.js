@@ -59,6 +59,7 @@ const UI = {
   skinTerrain: { en: "Terrain", zh: "地形" },
   skinSketch: { en: "Sketch", zh: "素描" },
   skinPhoto: { en: "Photo", zh: "照片" },
+  skinWood: { en: "Wooden puzzle", zh: "木头拼图" },
   skinPrev: { en: "Previous look", zh: "上一种外观" },
   skinNext: { en: "Next look", zh: "下一种外观" },
   langMain: { en: "Main language", zh: "主要语言" },

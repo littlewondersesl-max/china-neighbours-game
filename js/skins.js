@@ -5,8 +5,13 @@ export const SKINS = {
     { id: "terrain", label: "skinTerrain" },
     { id: "sketch", label: "skinSketch", src: "assets/skins/chn/sketch.jpg" },
     { id: "photo", label: "skinPhoto", src: "assets/skins/chn/photo.jpg" },
+    // Pre-aligned to the real outline: lon/lat-linear image over `bounds` [W, S, E, N], warped per projection.
+    { id: "wood", label: "skinWood", src: "assets/skins/chn/wood.jpg", bounds: [73.0009, 17.6046, 135.3727, 54.1673] },
   ],
 };
+
+/** Skin shown first when the player has not picked one yet. */
+const DEFAULT_SKIN = { CHN: "wood" };
 
 const STORAGE = "ln-skin-";
 
@@ -31,7 +36,8 @@ export function readSkin(iso) {
   } catch {
     /* private mode */
   }
-  return list[0].id;
+  const def = DEFAULT_SKIN[iso];
+  return list.some((skin) => skin.id === def) ? def : list[0].id;
 }
 
 export function writeSkin(iso, id) {
@@ -154,10 +160,16 @@ export function contentCrop(image) {
 }
 
 /** Fit the crop into the country's bounding box (uniform cover) and mask to the real rings. */
-export function clipSkin(image, mesh) {
+export function clipSkin(image, mesh, skin, proj) {
   if (!mesh.skinCanvas) mesh.skinCanvas = new WeakMap();
   const cached = mesh.skinCanvas.get(image);
   if (cached) return cached;
+  if (skin && skin.bounds && proj) {
+    const canvas = geoSkin(image, mesh, skin.bounds, proj);
+    maskRings(canvas, mesh);
+    mesh.skinCanvas.set(image, canvas);
+    return canvas;
+  }
   const long = 1024;
   const aspect = mesh.width / Math.max(mesh.height, 1);
   const W = aspect >= 1 ? long : Math.max(1, Math.round(long * aspect));
@@ -171,6 +183,56 @@ export function clipSkin(image, mesh) {
   const dw = crop.w * scale;
   const dh = crop.h * scale;
   ctx.drawImage(image, crop.x, crop.y, crop.w, crop.h, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  maskRings(canvas, mesh);
+  mesh.skinCanvas.set(image, canvas);
+  return canvas;
+}
+
+function canvasFor(mesh) {
+  const long = 1024;
+  const aspect = mesh.width / Math.max(mesh.height, 1);
+  const canvas = document.createElement("canvas");
+  canvas.width = aspect >= 1 ? long : Math.max(1, Math.round(long * aspect));
+  canvas.height = aspect >= 1 ? Math.max(1, Math.round(long / aspect)) : long;
+  return canvas;
+}
+
+/** Resample a lon/lat-linear picture into this mesh's projection, pixel by pixel (exact on any LAEA centre). */
+function geoSkin(image, mesh, bounds, proj) {
+  const canvas = canvasFor(mesh);
+  const W = canvas.width, H = canvas.height;
+  const src = document.createElement("canvas");
+  src.width = image.width;
+  src.height = image.height;
+  const sctx = src.getContext("2d", { willReadFrequently: true });
+  sctx.drawImage(image, 0, 0);
+  const sd = sctx.getImageData(0, 0, src.width, src.height).data;
+  const ctx = canvas.getContext("2d");
+  const out = ctx.createImageData(W, H);
+  const od = out.data;
+  const [w0, s0, e0, n0] = bounds;
+  const sw = src.width, sh = src.height;
+  for (let y = 0; y < H; y += 1) {
+    const ky = mesh.cy + mesh.relMaxY - ((y + 0.5) / H) * mesh.height;
+    for (let x = 0; x < W; x += 1) {
+      const kx = mesh.cx + mesh.relMinX + ((x + 0.5) / W) * mesh.width;
+      const ll = proj.inverse(kx, ky);
+      let u = ((ll[0] - w0) / (e0 - w0)) * sw;
+      let v = ((n0 - ll[1]) / (n0 - s0)) * sh;
+      u = Math.min(sw - 1, Math.max(0, u | 0));
+      v = Math.min(sh - 1, Math.max(0, v | 0));
+      const si = (v * sw + u) * 4;
+      const oi = (y * W + x) * 4;
+      od[oi] = sd[si]; od[oi + 1] = sd[si + 1]; od[oi + 2] = sd[si + 2]; od[oi + 3] = 255;
+    }
+  }
+  ctx.putImageData(out, 0, 0);
+  return canvas;
+}
+
+function maskRings(canvas, mesh) {
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext("2d");
   ctx.globalCompositeOperation = "destination-in";
   ctx.beginPath();
   const { relMinX, relMaxY, width, height } = mesh;
@@ -184,6 +246,5 @@ export function clipSkin(image, mesh) {
     ctx.closePath();
   }
   ctx.fill("evenodd");
-  mesh.skinCanvas.set(image, canvas);
-  return canvas;
+  ctx.globalCompositeOperation = "source-over";
 }

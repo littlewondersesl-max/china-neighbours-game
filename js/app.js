@@ -1075,7 +1075,7 @@ function pieceDraw(piece, glView) {
   const skin = skinRecord(piece.iso);
   const image = skin.src ? skinImages.get(skin.src) : null;
   if (image && mesh && mesh.width > 0 && mesh.height > 0) {
-    entry.tex = glView.prepareSkin(mesh, skin.id, clipSkin(image, mesh));
+    entry.tex = glView.prepareSkin(mesh, skin.id, clipSkin(image, mesh, skin, proj));
   }
   return entry;
 }
