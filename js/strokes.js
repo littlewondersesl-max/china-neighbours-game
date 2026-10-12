@@ -1,33 +1,4 @@
-/** Cached country outlines for the globe. Coarse lines are for drag and zoom; fine lines are for the settled view. */
-
-function simplify(ring, minDeg) {
-  if (ring.length <= 2 || minDeg <= 0) return ring;
-  const min2 = minDeg * minDeg;
-  const out = [ring[0]];
-  let last = ring[0];
-  for (let i = 1; i < ring.length - 1; i++) {
-    const p = ring[i];
-    const dlon = p[0] - last[0];
-    const dlat = p[1] - last[1];
-    if (dlon * dlon + dlat * dlat >= min2) {
-      out.push(p);
-      last = p;
-    }
-  }
-  out.push(ring[ring.length - 1]);
-  return out;
-}
-
-function smallRing(ring) {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const p of ring) {
-    if (p[0] < minX) minX = p[0];
-    if (p[0] > maxX) maxX = p[0];
-    if (p[1] < minY) minY = p[1];
-    if (p[1] > maxY) maxY = p[1];
-  }
-  return maxX - minX < 1.15 && maxY - minY < 1.15;
-}
+/** Globe borders from the master arc set. One line weight, no second simplification. */
 
 function commit(bucket, asia, pts, a, b) {
   if (b - a < 2) return;
@@ -73,37 +44,14 @@ function graticule(step) {
   return lines;
 }
 
-function spanOf(ring) {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const p of ring) {
-    if (p[0] < minX) minX = p[0];
-    if (p[0] > maxX) maxX = p[0];
-    if (p[1] < minY) minY = p[1];
-    if (p[1] > maxY) maxY = p[1];
+export function prepareBorderArcs(arcs, continentOf) {
+  const lines = [];
+  for (const arc of arcs) {
+    if (!arc.pts || arc.pts.length < 2) continue;
+    const asia = continentOf.get(arc.a) === "Asia" || (arc.b && continentOf.get(arc.b) === "Asia");
+    addRing(lines, asia, arc.pts);
   }
-  return Math.max(maxX - minX, maxY - minY);
-}
-
-export function prepareWorldStrokes(features) {
-  const detail = [];
-  const settled = [];
-  const coarse = [];
-  for (const feature of features) {
-    const asia = feature.properties.continent === "Asia";
-    const polys = feature.geometry.coordinates;
-    for (const poly of polys) {
-      for (const ring of poly) {
-        if (ring.length < 2) continue;
-        const span = spanOf(ring);
-        if (span >= 0.18 || ring.length > 12) addRing(detail, asia, simplify(ring, 0.12));
-        const mid = simplify(ring, 0.42);
-        if (mid.length >= 2 && (span >= 0.7 || mid.length >= 28)) addRing(settled, asia, mid);
-        const low = simplify(ring, 1.15);
-        if (low.length >= 2 && !(smallRing(low) && low.length < 24)) addRing(coarse, asia, low);
-      }
-    }
-  }
-  return { detail, settled, coarse, gratFine: graticule(15), gratCoarse: graticule(30) };
+  return { lines, gratFine: graticule(15), gratCoarse: graticule(30) };
 }
 
 function touches(line, lon0, lat0, maxC) {
@@ -155,8 +103,8 @@ function project(data, lon0, lat0, radius, w, h, path) {
 export function drawGlobeStrokes(ctx, w, h, pack, lon0, lat0, radius, mode, fast) {
   ctx.clearRect(0, 0, w, h);
   const half = Math.hypot(w, h) * 0.5;
-  const zoomed = !fast && radius > half * 1.2;
-  let lines = fast ? pack.coarse : zoomed ? pack.detail : pack.settled;
+  const zoomed = radius > half * 1.2;
+  let lines = pack.lines;
   if (zoomed) {
     const maxC = Math.asin(Math.min(1, half / Math.max(radius, 1))) * (180 / Math.PI) + 8;
     lines = lines.filter((line) => touches(line, lon0, lat0, maxC));
@@ -172,11 +120,10 @@ export function drawGlobeStrokes(ctx, w, h, pack, lon0, lat0, radius, mode, fast
   ctx.lineWidth = fast ? 0.7 : 0.6;
   ctx.strokeStyle = "rgba(255,255,255,0.16)";
   ctx.stroke(grat);
-  ctx.lineWidth = 0.8;
-  ctx.strokeStyle = mode === "asia" ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.55)";
+  ctx.lineWidth = 0.9;
+  ctx.strokeStyle = mode === "asia" ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.55)";
   ctx.stroke(dim);
-  ctx.lineWidth = mode === "asia" ? 1.15 : 0.95;
-  ctx.strokeStyle = "rgba(255,236,196,0.92)";
+  ctx.strokeStyle = "rgba(255,236,196,0.9)";
   ctx.stroke(asia);
   ctx.beginPath();
   ctx.lineWidth = 1.4;

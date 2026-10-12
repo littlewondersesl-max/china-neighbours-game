@@ -1,6 +1,6 @@
 import { makeLaea, buildMesh, boundsOfFeature, pairKey, screenPath, absLinePath } from "./geo.js";
 import { createView } from "./gl.js";
-import { prepareWorldStrokes, drawGlobeStrokes } from "./strokes.js";
+import { prepareBorderArcs, drawGlobeStrokes } from "./strokes.js";
 import { skinsFor, skinSources, readSkin, writeSkin, clipSkin } from "./skins.js";
 import { LANGS, pick, line, htmlStack, esc, getLang, setLang, onLangChange, activeLangs, langButtonText, scriptLang } from "./i18n.js";
 
@@ -104,6 +104,8 @@ let pinch = null;
 let proj = null;
 let meshes = new Map();
 let seamKm = new Map();
+let masterArcs = [];
+let puzzleArcs = [];
 let pieces = new Map();
 let selected = null;
 let focusIso = null;
@@ -204,9 +206,8 @@ async function init() {
     mainGL = createView($("gl"));
     cardGL = createView($("card-gl"));
     thumbGL = createView(document.createElement("canvas"), { preserve: true });
-    const [world, shapes, borderData, riverData, cardData, coastData, relief, ...skins] = await Promise.all([
-      loadJSON("data/world.json"),
-      loadJSON("data/shapes.json"),
+    const [master, borderData, riverData, cardData, coastData, relief, ...skins] = await Promise.all([
+      loadJSON("data/master.json"),
       loadJSON("data/borders.json"),
       loadJSON("data/rivers.json"),
       loadJSON("data/cards.json"),
@@ -220,10 +221,27 @@ async function init() {
     cards = cardData;
     reliefImage = relief;
     for (const skin of skins) if (skin) skinImages.set(skin.src, skin.img);
-    worldFeatures = world.features;
+    masterArcs = master.arcs || [];
+    const continentOf = new Map();
+    worldFeatures = master.countries.map((country) => {
+      continentOf.set(country.iso, country.continent);
+      const feature = {
+        type: "Feature",
+        properties: {
+          iso: country.iso,
+          name: country.name,
+          zh: country.zh,
+          continent: country.continent,
+          areaKm2: country.areaKm2,
+          label: country.label,
+        },
+        geometry: country.geometry,
+      };
+      if (country.puzzle) shapeByIso.set(country.iso, feature);
+      return feature;
+    });
     for (const f of worldFeatures) f._b = boundsOfFeature(f);
-    worldStrokes = prepareWorldStrokes(worldFeatures);
-    for (const f of shapes.features) shapeByIso.set(f.properties.iso, f);
+    worldStrokes = prepareBorderArcs(masterArcs, continentOf);
     indexNames();
     mainGL.setRelief(relief);
     cardGL.setRelief(relief);
@@ -822,22 +840,7 @@ function enterPuzzle(iso) {
     const feature = shapeByIso.get(id);
     meshes.set(id, buildMesh(feature, proj, rivers[id] || []));
   }
-  seamKm = new Map();
-  for (const [key, lines] of Object.entries(borders.seams)) {
-    const [a, b] = key.split("|");
-    if (!need.includes(a) || !need.includes(b)) continue;
-    const projected = [];
-    for (const line of lines) {
-      const out = [];
-      for (const [lon, lat] of line) {
-        const xy = proj.forward(lon, lat);
-        if (!xy) { out.length = 0; break; }
-        out.push(xy);
-      }
-      if (out.length >= 2) projected.push(out);
-    }
-    if (projected.length) seamKm.set(key, projected);
-  }
+  projectPuzzleArcs();
   projectCoasts();
   pieces = new Map();
   const centreMesh = meshes.get(iso);
@@ -879,22 +882,7 @@ function enterBuild(iso) {
     const feature = shapeByIso.get(id);
     meshes.set(id, buildMesh(feature, proj, rivers[id] || []));
   }
-  seamKm = new Map();
-  for (const [key, lines] of Object.entries(borders.seams)) {
-    const [a, b] = key.split("|");
-    if (!buildSet.has(a) || !buildSet.has(b)) continue;
-    const projected = [];
-    for (const line of lines) {
-      const out = [];
-      for (const [lon, lat] of line) {
-        const xy = proj.forward(lon, lat);
-        if (!xy) { out.length = 0; break; }
-        out.push(xy);
-      }
-      if (out.length >= 2) projected.push(out);
-    }
-    if (projected.length) seamKm.set(key, projected);
-  }
+  projectPuzzleArcs();
   projectCoasts();
   pieces = new Map();
   const startMesh = meshes.get(iso);
@@ -1021,12 +1009,21 @@ function buildGuide(ids) {
     }
     const fill = id === centreIso ? "#6f9468" : PALETTE[i % PALETTE.length];
     const label = pick({ en: meta.name, zh: meta.zh }).main;
-    parts.push(`<path d="${d}" fill="${fill}" stroke="#1c2a24" stroke-width="${(span / 520).toFixed(2)}"><title>${esc(line({ en: meta.name, zh: meta.zh }))}</title></path>`);
+    parts.push(`<path d="${d}" fill="${fill}" stroke="none"><title>${esc(line({ en: meta.name, zh: meta.zh }))}</title></path>`);
     const labelCut = playKind === "build" ? 0.018 : 0.07;
     if (m.width > span * labelCut) {
       parts.push(`<text x="${m.cx.toFixed(1)}" y="${(-m.cy).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="${(span / 38).toFixed(1)}" fill="#1b2420">${esc(label)}</text>`);
     }
   });
+  const borderW = (span / 520).toFixed(2);
+  for (const arc of puzzleArcs) {
+    if (!ids.includes(arc.a) && !(arc.b && ids.includes(arc.b))) continue;
+    let d = "";
+    for (let k = 0; k < arc.abs.length; k++) {
+      d += (k ? "L" : "M") + arc.abs[k][0].toFixed(1) + " " + (-arc.abs[k][1]).toFixed(1) + " ";
+    }
+    parts.push(`<path d="${d}" fill="none" stroke="#1c2a24" stroke-width="${borderW}" stroke-linejoin="round"/>`);
+  }
   $("guide-svg-wrap").innerHTML = `<svg viewBox="${minX.toFixed(1)} ${(-maxY).toFixed(1)} ${(maxX - minX).toFixed(1)} ${(maxY - minY).toFixed(1)}">${parts.join("")}</svg>`;
 }
 
@@ -1145,13 +1142,12 @@ function draw() {
     }
     const order = drawOrder();
     mainGL.drawPieces(order.map((p) => pieceDraw(p, mainGL)), view, { shadow: !interacting });
+    clearStrokes(w, h);
+    syncPuzzleLines(order);
     if (interacting) {
       playfield.classList.add("interacting");
-      drawFastPuzzleLines(order);
     } else {
-      clearStrokes(w, h);
       playfield.classList.remove("interacting");
-      syncPuzzleLines(order);
       syncGraticule();
       drawGhosts();
       drawLabels(order);
@@ -1233,79 +1229,60 @@ function kmTransform(cx, cy, scale) {
   return `matrix(${a.toFixed(5)},0,0,${a.toFixed(5)},${tx.toFixed(2)},${ty.toFixed(2)})`;
 }
 
-function coarseRings(mesh) {
-  if (mesh.coarse) return mesh.coarse;
-  mesh.coarse = mesh.rings.map((ring) => {
-    if (ring.length < 220) return ring;
-    const stride = Math.ceil(ring.length / 160);
-    const out = [];
-    for (let i = 0; i < ring.length; i += stride) out.push(ring[i]);
-    if (out[out.length - 1] !== ring[ring.length - 1]) out.push(ring[ring.length - 1]);
-    return out;
-  });
-  return mesh.coarse;
-}
-
-function drawFastPuzzleLines(order) {
-  const ctx = strokeContext(view.width, view.height);
-  ctx.clearRect(0, 0, view.width, view.height);
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.lineWidth = 1.15;
-  ctx.beginPath();
-  for (const piece of order) {
-    const mesh = meshes.get(piece.iso);
-    if (!mesh) continue;
-    for (const ring of coarseRings(mesh)) {
-      for (let i = 0; i < ring.length; i++) {
-        const x = piece.cx + piece.scale * ring[i][0];
-        const y = piece.cy + piece.scale * ring[i][1];
-        const sx = (x - view.originX) / view.kmPerPx;
-        const sy = view.height - (y - view.originY) / view.kmPerPx;
-        if (i === 0) ctx.moveTo(sx, sy);
-        else ctx.lineTo(sx, sy);
-      }
-      ctx.closePath();
-    }
-  }
-  ctx.strokeStyle = "rgba(255,255,255,0.82)";
-  ctx.stroke();
-  const focus = focusIso && order.find((piece) => piece.iso === focusIso);
-  if (focus) strokeFocusGlow(ctx, focus);
-}
-
-function strokeFocusGlow(ctx, piece) {
-  const mesh = meshes.get(piece.iso);
-  if (!mesh) return;
-  ctx.save();
-  ctx.beginPath();
-  for (const ring of coarseRings(mesh)) {
-    for (let i = 0; i < ring.length; i += 1) {
-      const x = piece.cx + piece.scale * ring[i][0];
-      const y = piece.cy + piece.scale * ring[i][1];
-      const sx = (x - view.originX) / view.kmPerPx;
-      const sy = view.height - (y - view.originY) / view.kmPerPx;
-      if (i === 0) ctx.moveTo(sx, sy);
-      else ctx.lineTo(sx, sy);
-    }
-    ctx.closePath();
-  }
-  ctx.shadowColor = "rgba(210, 140, 52, 0.55)";
-  ctx.shadowBlur = 10;
-  ctx.lineWidth = 7;
-  ctx.strokeStyle = "rgba(226, 168, 78, 0.28)";
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  ctx.lineWidth = 1.6;
-  ctx.strokeStyle = "rgba(255, 214, 150, 0.72)";
-  ctx.stroke();
-  ctx.restore();
-}
-
 function ensureMeshPaths(mesh) {
   if (mesh.ringD != null) return;
   mesh.ringD = kmPath(mesh.rings, true);
   mesh.riverD = kmPath(mesh.rivers, false);
+}
+
+function projectPuzzleArcs() {
+  puzzleArcs = [];
+  seamKm = new Map();
+  lineNodes.clear();
+  linesEl.replaceChildren();
+  if (!proj) return;
+  for (const arc of masterArcs) {
+    const owners = [arc.a, arc.b].filter((iso) => iso && meshes.has(iso));
+    if (!owners.length) continue;
+    const abs = [];
+    let ok = true;
+    for (const [lon, lat] of arc.pts) {
+      const xy = proj.forward(lon, lat);
+      if (!xy) { ok = false; break; }
+      abs.push(xy);
+    }
+    if (!ok || abs.length < 2) continue;
+    const local = {};
+    for (const iso of owners) {
+      const mesh = meshes.get(iso);
+      local[iso] = abs.map(([x, y]) => [x - mesh.cx, y - mesh.cy]);
+    }
+    const rec = { a: arc.a, b: arc.b || null, owners, abs, local };
+    puzzleArcs.push(rec);
+    if (rec.b && owners.length === 2) {
+      const key = pairKey(rec.a, rec.b);
+      if (!seamKm.has(key)) seamKm.set(key, []);
+      seamKm.get(key).push(abs);
+    }
+  }
+}
+
+function coincidentPieces(a, b) {
+  const ma = meshes.get(a.iso);
+  const mb = meshes.get(b.iso);
+  return Math.abs(a.scale - b.scale) < 1e-4
+    && Math.abs((a.cx - b.cx) - (ma.cx - mb.cx)) < 0.5
+    && Math.abs((a.cy - b.cy) - (ma.cy - mb.cy)) < 0.5;
+}
+
+function hideSharedArc(arc, iso) {
+  if (!arc.b) return false;
+  const other = arc.a === iso ? arc.b : arc.a;
+  const mine = pieces.get(iso);
+  const theirs = pieces.get(other);
+  if (!mine || !theirs) return false;
+  if (!coincidentPieces(mine, theirs)) return false;
+  return iso > other;
 }
 
 function syncPuzzleLines(order) {
@@ -1322,27 +1299,42 @@ function syncPuzzleLines(order) {
       river.setAttribute("class", "river");
       river.setAttribute("d", mesh.riverD);
       if (!mesh.riverD) river.setAttribute("visibility", "hidden");
-      const outline = document.createElementNS(SVGNS, "path");
-      outline.setAttribute("d", mesh.ringD);
       const glow = document.createElementNS(SVGNS, "path");
       glow.setAttribute("class", "border-glow");
       glow.setAttribute("d", mesh.ringD);
       glow.setAttribute("vector-effect", "non-scaling-stroke");
+      g.append(glow);
+      const arcs = [];
+      for (const arc of puzzleArcs) {
+        if (!arc.local[piece.iso]) continue;
+        const path = document.createElementNS(SVGNS, "path");
+        path.setAttribute("class", "border-arc");
+        path.dataset.n = String(puzzleArcs.indexOf(arc));
+        path.dataset.a = arc.a;
+        path.dataset.b = arc.b || "";
+        path.dataset.iso = piece.iso;
+        path.setAttribute("d", kmPath([arc.local[piece.iso]], false));
+        path.setAttribute("vector-effect", "non-scaling-stroke");
+        arcs.push({ arc, path, hide: false });
+        g.append(path);
+      }
       g.dataset.iso = piece.iso;
-      g.append(river, glow, outline);
+      g.append(river);
       linesEl.append(g);
-      node = { g, outline, glow, cls: "", glowOn: false };
+      node = { g, glow, arcs, glowOn: false };
       lineNodes.set(piece.iso, node);
     }
     const glowOn = piece.iso === focusIso;
-    if (node.glow && node.glowOn !== glowOn) {
+    if (node.glowOn !== glowOn) {
       node.glow.classList.toggle("on", glowOn);
       node.glowOn = glowOn;
     }
-    const cls = `outline${piece.fixed ? " centre" : ""}${piece.locked ? " locked" : ""}`;
-    if (node.cls !== cls) {
-      node.outline.setAttribute("class", cls);
-      node.cls = cls;
+    for (const item of node.arcs) {
+      const hide = hideSharedArc(item.arc, piece.iso);
+      if (item.hide !== hide) {
+        item.path.setAttribute("visibility", hide ? "hidden" : "visible");
+        item.hide = hide;
+      }
     }
     const tf = kmTransform(piece.cx, piece.cy, piece.scale);
     if (node.tf !== tf) {
@@ -2474,15 +2466,14 @@ function cardFrame(mesh, mates) {
 function sharedBorderPaths(iso, mates, cardView) {
   const paths = [];
   for (const id of mates) {
-    const lines = borders.seams[pairKey(iso, id)] || [];
+    const lines = seamKm.get(pairKey(iso, id)) || [];
     for (const line of lines) {
       let d = "";
       let n = 0;
       let broke = false;
-      for (const [lon, lat] of line) {
-        const xy = proj.forward(lon, lat);
-        if (!xy) { broke = true; break; }
-        const s = screenOfKm(xy[0], xy[1], cardView);
+      for (const [x, y] of line) {
+        if (!Number.isFinite(x) || !Number.isFinite(y)) { broke = true; break; }
+        const s = screenOfKm(x, y, cardView);
         d += (n ? "L" : "M") + s.x.toFixed(1) + " " + s.y.toFixed(1) + " ";
         n += 1;
       }
