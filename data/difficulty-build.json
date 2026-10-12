@@ -1,0 +1,473 @@
+{
+ "levels": [
+  {
+   "id": 1,
+   "en": "Easy",
+   "zh": "简单",
+   "color": "#3fbf5f"
+  },
+  {
+   "id": 2,
+   "en": "Medium",
+   "zh": "中等",
+   "color": "#a6d43a"
+  },
+  {
+   "id": 3,
+   "en": "Tricky",
+   "zh": "有点难",
+   "color": "#f2c230"
+  },
+  {
+   "id": 4,
+   "en": "Hard",
+   "zh": "难",
+   "color": "#f07a2e"
+  },
+  {
+   "id": 5,
+   "en": "Expert",
+   "zh": "高手",
+   "color": "#a347d1"
+  }
+ ],
+ "formula": "Build-the-continent game (data/difficulty-build.json), per country k in the continent:\n  inland = 1 - coast share of the outline (landlocked interior is harder than coast or edge)\n  tiny   = 1 - percentile rank of area                   tiny countries are hard\n  nbs    = 0.8 for islands (must type the name), else min(|N|, 10) / 12\n  plain  = 1 - distinctiveness, distinctiveness = clip((|log aspect| + wiggle) / 1.5)\n  score  = 100 * (0.25 inland + 0.35 tiny + 0.15 nbs + 0.25 plain)",
+ "continents": {
+  "Asia": {
+   "countries": {
+    "AFG": {
+     "score": 57.1,
+     "neighbours": 6,
+     "inland": 1.0,
+     "tiny": 0.234,
+     "nbs": 0.5,
+     "plain": 0.655,
+     "level": 3
+    },
+    "ARE": {
+     "score": 59.4,
+     "neighbours": 2,
+     "inland": 0.629,
+     "tiny": 0.702,
+     "nbs": 0.167,
+     "plain": 0.662,
+     "level": 4
+    },
+    "ARM": {
+     "score": 78.6,
+     "neighbours": 4,
+     "inland": 1.0,
+     "tiny": 0.787,
+     "nbs": 0.333,
+     "plain": 0.843,
+     "level": 5
+    },
+    "AZE": {
+     "score": 69.8,
+     "neighbours": 5,
+     "inland": 1.0,
+     "tiny": 0.681,
+     "nbs": 0.417,
+     "plain": 0.589,
+     "level": 5
+    },
+    "BGD": {
+     "score": 57.5,
+     "neighbours": 2,
+     "inland": 1.0,
+     "tiny": 0.596,
+     "nbs": 0.167,
+     "plain": 0.367,
+     "level": 3
+    },
+    "BHR": {
+     "score": 51.5,
+     "neighbours": 0,
+     "inland": 0.0,
+     "tiny": 0.979,
+     "nbs": 0.8,
+     "plain": 0.209,
+     "level": 3
+    },
+    "BRN": {
+     "score": 62.3,
+     "neighbours": 1,
+     "inland": 0.493,
+     "tiny": 0.957,
+     "nbs": 0.083,
+     "plain": 0.61,
+     "level": 4
+    },
+    "BTN": {
+     "score": 67.8,
+     "neighbours": 2,
+     "inland": 1.0,
+     "tiny": 0.766,
+     "nbs": 0.167,
+     "plain": 0.541,
+     "level": 5
+    },
+    "CHN": {
+     "score": 43.4,
+     "neighbours": 14,
+     "inland": 0.788,
+     "tiny": 0.021,
+     "nbs": 0.833,
+     "plain": 0.416,
+     "level": 2
+    },
+    "CYP": {
+     "score": 56.5,
+     "neighbours": 0,
+     "inland": 0.0,
+     "tiny": 0.915,
+     "nbs": 0.8,
+     "plain": 0.5,
+     "level": 3
+    },
+    "GEO": {
+     "score": 65.1,
+     "neighbours": 4,
+     "inland": 1.0,
+     "tiny": 0.723,
+     "nbs": 0.333,
+     "plain": 0.392,
+     "level": 4
+    },
+    "IDN": {
+     "score": 9.2,
+     "neighbours": 3,
+     "inland": 0.071,
+     "tiny": 0.106,
+     "nbs": 0.25,
+     "plain": 0,
+     "level": 1
+    },
+    "IND": {
+     "score": 43.4,
+     "neighbours": 6,
+     "inland": 0.804,
+     "tiny": 0.043,
+     "nbs": 0.5,
+     "plain": 0.572,
+     "level": 2
+    },
+    "IRN": {
+     "score": 52.5,
+     "neighbours": 7,
+     "inland": 0.785,
+     "tiny": 0.128,
+     "nbs": 0.583,
+     "plain": 0.786,
+     "level": 3
+    },
+    "IRQ": {
+     "score": 66.9,
+     "neighbours": 6,
+     "inland": 1.0,
+     "tiny": 0.34,
+     "nbs": 0.5,
+     "plain": 0.898,
+     "level": 5
+    },
+    "ISR": {
+     "score": 58.5,
+     "neighbours": 5,
+     "inland": 0.916,
+     "tiny": 0.809,
+     "nbs": 0.417,
+     "plain": 0.044,
+     "level": 4
+    },
+    "JOR": {
+     "score": 74.3,
+     "neighbours": 5,
+     "inland": 1.0,
+     "tiny": 0.66,
+     "nbs": 0.417,
+     "plain": 0.798,
+     "level": 5
+    },
+    "JPN": {
+     "score": 30.3,
+     "neighbours": 0,
+     "inland": 0.0,
+     "tiny": 0.362,
+     "nbs": 0.8,
+     "plain": 0.227,
+     "level": 1
+    },
+    "KAZ": {
+     "score": 42.0,
+     "neighbours": 5,
+     "inland": 1.0,
+     "tiny": 0.064,
+     "nbs": 0.417,
+     "plain": 0.341,
+     "level": 2
+    },
+    "KGZ": {
+     "score": 54.2,
+     "neighbours": 4,
+     "inland": 1.0,
+     "tiny": 0.489,
+     "nbs": 0.333,
+     "plain": 0.283,
+     "level": 3
+    },
+    "KHM": {
+     "score": 66.5,
+     "neighbours": 3,
+     "inland": 1.0,
+     "tiny": 0.532,
+     "nbs": 0.25,
+     "plain": 0.767,
+     "level": 4
+    },
+    "KOR": {
+     "score": 33.9,
+     "neighbours": 1,
+     "inland": 0.102,
+     "tiny": 0.638,
+     "nbs": 0.083,
+     "plain": 0.311,
+     "level": 1
+    },
+    "KWT": {
+     "score": 67.7,
+     "neighbours": 2,
+     "inland": 0.625,
+     "tiny": 0.83,
+     "nbs": 0.167,
+     "plain": 0.823,
+     "level": 5
+    },
+    "LAO": {
+     "score": 62.3,
+     "neighbours": 5,
+     "inland": 1.0,
+     "tiny": 0.468,
+     "nbs": 0.417,
+     "plain": 0.585,
+     "level": 4
+    },
+    "LBN": {
+     "score": 74.7,
+     "neighbours": 2,
+     "inland": 0.904,
+     "tiny": 0.894,
+     "nbs": 0.167,
+     "plain": 0.734,
+     "level": 5
+    },
+    "LKA": {
+     "score": 51.6,
+     "neighbours": 0,
+     "inland": 0.0,
+     "tiny": 0.745,
+     "nbs": 0.8,
+     "plain": 0.54,
+     "level": 3
+    },
+    "MMR": {
+     "score": 34.9,
+     "neighbours": 5,
+     "inland": 0.789,
+     "tiny": 0.213,
+     "nbs": 0.417,
+     "plain": 0.059,
+     "level": 1
+    },
+    "MNG": {
+     "score": 42.1,
+     "neighbours": 2,
+     "inland": 1.0,
+     "tiny": 0.149,
+     "nbs": 0.167,
+     "plain": 0.377,
+     "level": 2
+    },
+    "MYS": {
+     "score": 28.9,
+     "neighbours": 3,
+     "inland": 0.442,
+     "tiny": 0.404,
+     "nbs": 0.25,
+     "plain": 0,
+     "level": 1
+    },
+    "NPL": {
+     "score": 58.4,
+     "neighbours": 2,
+     "inland": 1.0,
+     "tiny": 0.553,
+     "nbs": 0.167,
+     "plain": 0.462,
+     "level": 4
+    },
+    "OMN": {
+     "score": 46.5,
+     "neighbours": 3,
+     "inland": 0.462,
+     "tiny": 0.426,
+     "nbs": 0.25,
+     "plain": 0.652,
+     "level": 2
+    },
+    "PAK": {
+     "score": 54.3,
+     "neighbours": 4,
+     "inland": 1.0,
+     "tiny": 0.17,
+     "nbs": 0.333,
+     "plain": 0.734,
+     "level": 3
+    },
+    "PHL": {
+     "score": 29.5,
+     "neighbours": 0,
+     "inland": 0.0,
+     "tiny": 0.447,
+     "nbs": 0.8,
+     "plain": 0.073,
+     "level": 1
+    },
+    "PRK": {
+     "score": 60.6,
+     "neighbours": 3,
+     "inland": 0.673,
+     "tiny": 0.617,
+     "nbs": 0.25,
+     "plain": 0.738,
+     "level": 4
+    },
+    "PSX": {
+     "score": 80.1,
+     "neighbours": 3,
+     "inland": 1.0,
+     "tiny": 0.936,
+     "nbs": 0.25,
+     "plain": 0.742,
+     "level": 5
+    },
+    "QAT": {
+     "score": 48.6,
+     "neighbours": 1,
+     "inland": 0.194,
+     "tiny": 0.872,
+     "nbs": 0.083,
+     "plain": 0.48,
+     "level": 2
+    },
+    "RUS": {
+     "score": 18.6,
+     "neighbours": 14,
+     "inland": 0.245,
+     "tiny": 0.0,
+     "nbs": 0.833,
+     "plain": 0,
+     "level": 1
+    },
+    "SAU": {
+     "score": 47.4,
+     "neighbours": 7,
+     "inland": 0.638,
+     "tiny": 0.085,
+     "nbs": 0.583,
+     "plain": 0.787,
+     "level": 2
+    },
+    "SGP": {
+     "score": 61.1,
+     "neighbours": 0,
+     "inland": 0.0,
+     "tiny": 1.0,
+     "nbs": 0.8,
+     "plain": 0.562,
+     "level": 4
+    },
+    "SYR": {
+     "score": 70.5,
+     "neighbours": 5,
+     "inland": 1.0,
+     "tiny": 0.511,
+     "nbs": 0.417,
+     "plain": 0.854,
+     "level": 5
+    },
+    "THA": {
+     "score": 40.4,
+     "neighbours": 4,
+     "inland": 0.837,
+     "tiny": 0.255,
+     "nbs": 0.333,
+     "plain": 0.221,
+     "level": 2
+    },
+    "TJK": {
+     "score": 61.9,
+     "neighbours": 4,
+     "inland": 1.0,
+     "tiny": 0.574,
+     "nbs": 0.333,
+     "plain": 0.473,
+     "level": 4
+    },
+    "TKM": {
+     "score": 49.3,
+     "neighbours": 4,
+     "inland": 0.853,
+     "tiny": 0.277,
+     "nbs": 0.333,
+     "plain": 0.531,
+     "level": 2
+    },
+    "TLS": {
+     "score": 42.3,
+     "neighbours": 1,
+     "inland": 0.314,
+     "tiny": 0.851,
+     "nbs": 0.083,
+     "plain": 0.137,
+     "level": 2
+    },
+    "TUR": {
+     "score": 30.8,
+     "neighbours": 8,
+     "inland": 0.408,
+     "tiny": 0.191,
+     "nbs": 0.667,
+     "plain": 0.156,
+     "level": 1
+    },
+    "UZB": {
+     "score": 52.7,
+     "neighbours": 5,
+     "inland": 1.0,
+     "tiny": 0.319,
+     "nbs": 0.417,
+     "plain": 0.41,
+     "level": 3
+    },
+    "VNM": {
+     "score": 34.7,
+     "neighbours": 3,
+     "inland": 0.696,
+     "tiny": 0.383,
+     "nbs": 0.25,
+     "plain": 0.004,
+     "level": 1
+    },
+    "YEM": {
+     "score": 38.3,
+     "neighbours": 2,
+     "inland": 0.465,
+     "tiny": 0.298,
+     "nbs": 0.167,
+     "plain": 0.55,
+     "level": 1
+    }
+   }
+  }
+ }
+}

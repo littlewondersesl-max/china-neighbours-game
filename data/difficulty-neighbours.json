@@ -1,0 +1,468 @@
+{
+ "levels": [
+  {
+   "id": 1,
+   "en": "Easy",
+   "zh": "简单",
+   "color": "#3fbf5f"
+  },
+  {
+   "id": 2,
+   "en": "Medium",
+   "zh": "中等",
+   "color": "#a6d43a"
+  },
+  {
+   "id": 3,
+   "en": "Tricky",
+   "zh": "有点难",
+   "color": "#f2c230"
+  },
+  {
+   "id": 4,
+   "en": "Hard",
+   "zh": "难",
+   "color": "#f07a2e"
+  },
+  {
+   "id": 5,
+   "en": "Expert",
+   "zh": "高手",
+   "color": "#a347d1"
+  }
+ ],
+ "formula": "Neighbours game (data/difficulty-neighbours.json), per centre country c with land neighbours N:\n  n      = log(1+|N|) / log(15)                         more neighbours to place\n  short  = mean_N 1 / (1 + L_cn / 150 km)               short or tiny shared borders are hard to see\n  small  = mean_N 1 / (1 + sqrt(area_n) / 300 km)        small pieces are fiddly\n  wiggle = mean_N clip((P_n / (2 sqrt(pi A_n)) - 1) / 3)  ragged outlines (isoperimetric excess)\n  alike  = max over neighbour pairs of shape similarity  (area ratio x aspect x compactness)\n  score  = 100 * (0.30 n + 0.25 short + 0.15 small + 0.15 wiggle + 0.15 alike)",
+ "continents": {
+  "Asia": {
+   "bigFive": [
+    "RUS",
+    "CHN",
+    "TUR",
+    "ISR",
+    "SAU"
+   ],
+   "countries": {
+    "AFG": {
+     "score": 47.3,
+     "neighbours": 6,
+     "n": 0.719,
+     "short": 0.264,
+     "small": 0.263,
+     "wiggle": 0.392,
+     "alike": 0.623,
+     "level": 5
+    },
+    "ARE": {
+     "score": 25.4,
+     "neighbours": 2,
+     "n": 0.406,
+     "short": 0.222,
+     "small": 0.264,
+     "wiggle": 0.178,
+     "alike": 0.071,
+     "level": 1
+    },
+    "ARM": {
+     "score": 42.8,
+     "neighbours": 4,
+     "n": 0.594,
+     "short": 0.409,
+     "small": 0.37,
+     "wiggle": 0.317,
+     "alike": 0.297,
+     "level": 4
+    },
+    "AZE": {
+     "score": 43.3,
+     "neighbours": 5,
+     "n": 0.662,
+     "short": 0.355,
+     "small": 0.336,
+     "wiggle": 0.418,
+     "alike": 0.215,
+     "level": 4
+    },
+    "BGD": {
+     "score": 30.5,
+     "neighbours": 2,
+     "n": 0.406,
+     "short": 0.196,
+     "small": 0.207,
+     "wiggle": 0.602,
+     "alike": 0.09,
+     "level": 1
+    },
+    "BRN": {
+     "score": 32.1,
+     "neighbours": 1,
+     "n": 0.256,
+     "short": 0.361,
+     "small": 0.344,
+     "wiggle": 0.685,
+     "alike": 0,
+     "level": 2
+    },
+    "BTN": {
+     "score": 30.6,
+     "neighbours": 2,
+     "n": 0.406,
+     "short": 0.212,
+     "small": 0.117,
+     "wiggle": 0.56,
+     "alike": 0.198,
+     "level": 1
+    },
+    "CHN": {
+     "score": 51.9,
+     "neighbours": 14,
+     "n": 1.0,
+     "short": 0.163,
+     "small": 0.316,
+     "wiggle": 0.432,
+     "alike": 0.44,
+     "level": 5
+    },
+    "GEO": {
+     "score": 40.7,
+     "neighbours": 4,
+     "n": 0.594,
+     "short": 0.291,
+     "small": 0.366,
+     "wiggle": 0.511,
+     "alike": 0.164,
+     "level": 3
+    },
+    "IDN": {
+     "score": 39.1,
+     "neighbours": 3,
+     "n": 0.512,
+     "short": 0.2,
+     "small": 0.453,
+     "wiggle": 0.627,
+     "alike": 0.172,
+     "level": 3
+    },
+    "IND": {
+     "score": 37.7,
+     "neighbours": 6,
+     "n": 0.719,
+     "short": 0.082,
+     "small": 0.348,
+     "wiggle": 0.415,
+     "alike": 0.178,
+     "level": 3
+    },
+    "IRN": {
+     "score": 46.5,
+     "neighbours": 7,
+     "n": 0.768,
+     "short": 0.235,
+     "small": 0.361,
+     "wiggle": 0.302,
+     "alike": 0.507,
+     "level": 5
+    },
+    "IRQ": {
+     "score": 45.3,
+     "neighbours": 6,
+     "n": 0.719,
+     "short": 0.26,
+     "small": 0.371,
+     "wiggle": 0.212,
+     "alike": 0.568,
+     "level": 5
+    },
+    "ISR": {
+     "score": 48.9,
+     "neighbours": 5,
+     "n": 0.662,
+     "short": 0.464,
+     "small": 0.537,
+     "wiggle": 0.181,
+     "alike": 0.445,
+     "level": 5
+    },
+    "JOR": {
+     "score": 44.5,
+     "neighbours": 5,
+     "n": 0.662,
+     "short": 0.348,
+     "small": 0.473,
+     "wiggle": 0.209,
+     "alike": 0.384,
+     "level": 4
+    },
+    "KAZ": {
+     "score": 43.5,
+     "neighbours": 5,
+     "n": 0.662,
+     "short": 0.107,
+     "small": 0.235,
+     "wiggle": 0.539,
+     "alike": 0.623,
+     "level": 4
+    },
+    "KGZ": {
+     "score": 35.7,
+     "neighbours": 4,
+     "n": 0.594,
+     "short": 0.117,
+     "small": 0.249,
+     "wiggle": 0.457,
+     "alike": 0.289,
+     "level": 2
+    },
+    "KHM": {
+     "score": 37.9,
+     "neighbours": 3,
+     "n": 0.512,
+     "short": 0.161,
+     "small": 0.341,
+     "wiggle": 0.585,
+     "alike": 0.311,
+     "level": 3
+    },
+    "KOR": {
+     "score": 28.9,
+     "neighbours": 1,
+     "n": 0.256,
+     "short": 0.388,
+     "small": 0.462,
+     "wiggle": 0.308,
+     "alike": 0,
+     "level": 1
+    },
+    "KWT": {
+     "score": 30.1,
+     "neighbours": 2,
+     "n": 0.406,
+     "short": 0.388,
+     "small": 0.245,
+     "wiggle": 0.129,
+     "alike": 0.175,
+     "level": 1
+    },
+    "LAO": {
+     "score": 44.9,
+     "neighbours": 5,
+     "n": 0.662,
+     "short": 0.196,
+     "small": 0.282,
+     "wiggle": 0.527,
+     "alike": 0.533,
+     "level": 4
+    },
+    "LBN": {
+     "score": 36.1,
+     "neighbours": 2,
+     "n": 0.406,
+     "short": 0.46,
+     "small": 0.539,
+     "wiggle": 0.271,
+     "alike": 0.018,
+     "level": 2
+    },
+    "MMR": {
+     "score": 41.5,
+     "neighbours": 5,
+     "n": 0.662,
+     "short": 0.192,
+     "small": 0.272,
+     "wiggle": 0.551,
+     "alike": 0.297,
+     "level": 4
+    },
+    "MNG": {
+     "score": 26.5,
+     "neighbours": 2,
+     "n": 0.406,
+     "short": 0.037,
+     "small": 0.078,
+     "wiggle": 0.769,
+     "alike": 0.046,
+     "level": 1
+    },
+    "MYS": {
+     "score": 36.7,
+     "neighbours": 3,
+     "n": 0.512,
+     "short": 0.212,
+     "small": 0.424,
+     "wiggle": 0.631,
+     "alike": 0.014,
+     "level": 3
+    },
+    "NPL": {
+     "score": 27.5,
+     "neighbours": 2,
+     "n": 0.406,
+     "short": 0.088,
+     "small": 0.117,
+     "wiggle": 0.56,
+     "alike": 0.198,
+     "level": 1
+    },
+    "OMN": {
+     "score": 31.5,
+     "neighbours": 3,
+     "n": 0.512,
+     "short": 0.24,
+     "small": 0.339,
+     "wiggle": 0.178,
+     "alike": 0.156,
+     "level": 2
+    },
+    "PAK": {
+     "score": 34.1,
+     "neighbours": 4,
+     "n": 0.594,
+     "short": 0.122,
+     "small": 0.174,
+     "wiggle": 0.396,
+     "alike": 0.311,
+     "level": 2
+    },
+    "PRK": {
+     "score": 40.3,
+     "neighbours": 3,
+     "n": 0.512,
+     "short": 0.46,
+     "small": 0.215,
+     "wiggle": 0.633,
+     "alike": 0.046,
+     "level": 3
+    },
+    "PSX": {
+     "score": 41.3,
+     "neighbours": 3,
+     "n": 0.512,
+     "short": 0.567,
+     "small": 0.467,
+     "wiggle": 0.252,
+     "alike": 0.066,
+     "level": 3
+    },
+    "QAT": {
+     "score": 28.0,
+     "neighbours": 1,
+     "n": 0.256,
+     "short": 0.633,
+     "small": 0.178,
+     "wiggle": 0.121,
+     "alike": 0,
+     "level": 1
+    },
+    "RUS": {
+     "score": 57.6,
+     "neighbours": 14,
+     "n": 1.0,
+     "short": 0.255,
+     "small": 0.379,
+     "wiggle": 0.336,
+     "alike": 0.703,
+     "level": 5
+    },
+    "SAU": {
+     "score": 48.0,
+     "neighbours": 7,
+     "n": 0.768,
+     "short": 0.271,
+     "small": 0.491,
+     "wiggle": 0.177,
+     "alike": 0.541,
+     "level": 5
+    },
+    "SYR": {
+     "score": 41.3,
+     "neighbours": 5,
+     "n": 0.662,
+     "short": 0.308,
+     "small": 0.497,
+     "wiggle": 0.259,
+     "alike": 0.159,
+     "level": 4
+    },
+    "THA": {
+     "score": 37.0,
+     "neighbours": 4,
+     "n": 0.594,
+     "short": 0.123,
+     "small": 0.353,
+     "wiggle": 0.479,
+     "alike": 0.239,
+     "level": 3
+    },
+    "TJK": {
+     "score": 36.2,
+     "neighbours": 4,
+     "n": 0.594,
+     "short": 0.143,
+     "small": 0.268,
+     "wiggle": 0.401,
+     "alike": 0.316,
+     "level": 3
+    },
+    "TKM": {
+     "score": 34.8,
+     "neighbours": 4,
+     "n": 0.594,
+     "short": 0.154,
+     "small": 0.232,
+     "wiggle": 0.324,
+     "alike": 0.316,
+     "level": 2
+    },
+    "TLS": {
+     "score": 34.7,
+     "neighbours": 1,
+     "n": 0.256,
+     "short": 0.372,
+     "small": 0.18,
+     "wiggle": 1.0,
+     "alike": 0,
+     "level": 2
+    },
+    "TUR": {
+     "score": 51.2,
+     "neighbours": 8,
+     "n": 0.811,
+     "short": 0.384,
+     "small": 0.439,
+     "wiggle": 0.318,
+     "alike": 0.395,
+     "level": 5
+    },
+    "UZB": {
+     "score": 41.8,
+     "neighbours": 5,
+     "n": 0.662,
+     "short": 0.171,
+     "small": 0.315,
+     "wiggle": 0.356,
+     "alike": 0.507,
+     "level": 4
+    },
+    "VNM": {
+     "score": 31.5,
+     "neighbours": 3,
+     "n": 0.512,
+     "short": 0.094,
+     "small": 0.296,
+     "wiggle": 0.383,
+     "alike": 0.239,
+     "level": 2
+    },
+    "YEM": {
+     "score": 25.4,
+     "neighbours": 2,
+     "n": 0.406,
+     "short": 0.22,
+     "small": 0.264,
+     "wiggle": 0.178,
+     "alike": 0.071,
+     "level": 1
+    }
+   }
+  }
+ }
+}

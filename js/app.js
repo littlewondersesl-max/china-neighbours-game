@@ -292,6 +292,7 @@ function bind() {
   $("name-entry").addEventListener("click", () => openAsk("name"));
   $("choose-neighbours").addEventListener("click", chooseNeighbours);
   $("choose-build").addEventListener("click", () => openAsk("start"));
+  initExtras();
   $("ask-form").addEventListener("submit", onAskSubmit);
   $("ask-input").addEventListener("input", onAskInput);
   $("ask-cancel").addEventListener("click", closeAsk);
@@ -370,6 +371,7 @@ function setMode(next) {
   syncCardsButton();
   syncTools();
   syncSkinBar();
+  syncExtras();
 }
 
 function syncGuide() {
@@ -527,6 +529,7 @@ function applyLanguage() {
   if (mode === "puzzle" && guideIds.length) buildGuide(guideIds);
   paintAsk();
   syncSkinBar();
+  syncExtras(true);
   if (cardsOpen) renderCard();
   if (!$("reward").hidden) renderReward();
   requestDraw();
@@ -811,6 +814,7 @@ function maybeReward() {
   if (allLocked() && !rewarded && mode === "puzzle") {
     rewarded = true;
     showReward();
+    if (playKind === "neighbours") noteBigFive(centreIso);
   }
 }
 
@@ -976,6 +980,7 @@ function buildTrays(trays, nameless) {
   };
   trays.top.forEach((iso) => trayTop.appendChild(make(iso)));
   trays.bottom.forEach((iso) => trayBottom.appendChild(make(iso)));
+  if (typeof syncExtras === "function") syncExtras();
 }
 
 function markTray(iso, used) {
@@ -1167,6 +1172,7 @@ function draw() {
     if (interacting) playfield.classList.add("interacting");
     else playfield.classList.remove("interacting");
   }
+  drawGrade();
 }
 
 function resetOverlay() {
@@ -1936,17 +1942,8 @@ function onGlobeClick(p) {
     return;
   }
   if (continent !== "Asia") return;
-  const nbs = borders.neighbours[iso];
-  if (!nbs || !nbs.length) {
-    const name = f.properties.name;
-    const zh = f.properties.zh;
-    showToast({
-      en: `${name} has no land neighbours.`,
-      zh: `${zh}没有陆地邻国。`,
-    });
-    return;
-  }
-  enterPuzzle(iso);
+  navIso = iso;
+  startFromGlobe(f);
 }
 
 function startPlacedGesture(e, iso) {
@@ -2921,3 +2918,298 @@ window.__game = {
 };
 
 init();
+
+/* ---------- Left navigation list, Difficulty overlay, Big Five ---------- */
+
+const NAV_CONTINENTS = [
+  { id: "Africa", zh: "非洲", lon: 20, lat: 5 },
+  { id: "Asia", zh: "亚洲", lon: 90, lat: 28 },
+  { id: "Europe", zh: "欧洲", lon: 15, lat: 52 },
+  { id: "North America", zh: "北美洲", lon: -100, lat: 45 },
+  { id: "Oceania", zh: "大洋洲", lon: 140, lat: -25 },
+  { id: "South America", zh: "南美洲", lon: -60, lat: -15 },
+];
+const BIG_FIVE_KEY = "ln-bigfive-";
+let difficulty = { neighbours: null, build: null };
+let diffOn = false;
+let diffGlobeKind = "neighbours";
+let navIso = null;
+let navForMode = "";
+
+function initExtras() {
+  Promise.all([loadJSON("data/difficulty-neighbours.json"), loadJSON("data/difficulty-build.json")])
+    .then(([nb, bd]) => { difficulty = { neighbours: nb, build: bd }; syncExtras(true); requestDraw(); })
+    .catch((err) => console.warn("difficulty tables", err));
+  for (const id of ["nav-panel", "diff-wrap", "big-five"]) {
+    $(id).addEventListener("pointerdown", (e) => e.stopPropagation());
+    $(id).addEventListener("wheel", (e) => e.stopPropagation());
+  }
+  $("nav-up").addEventListener("click", () => enterWorld());
+  $("diff-toggle").addEventListener("click", () => {
+    diffOn = !diffOn;
+    syncExtras();
+    requestDraw();
+  });
+  $("win-ok").addEventListener("click", () => { $("win-five").hidden = true; });
+}
+
+/** Which table the overlay uses right now: neighbours on the globe (or build via the legend tabs), build in the build game. */
+function diffKind() {
+  if (mode === "puzzle") return playKind === "build" ? "build" : null;
+  return diffGlobeKind;
+}
+
+function diffRows(kind) {
+  const table = difficulty[kind];
+  return table?.continents?.[BUILD_TARGET.continent]?.countries || null;
+}
+
+function gradeColor(kind, iso) {
+  const row = diffRows(kind)?.[iso];
+  if (!row) return null;
+  return difficulty[kind].levels[row.level - 1].color;
+}
+
+function bigFive() {
+  return difficulty.neighbours?.continents?.[BUILD_TARGET.continent]?.bigFive || [];
+}
+
+function bigFiveDone() {
+  try {
+    const list = JSON.parse(localStorage.getItem(BIG_FIVE_KEY + BUILD_TARGET.continent) || "[]");
+    return new Set(Array.isArray(list) ? list : []);
+  } catch { return new Set(); }
+}
+
+function noteBigFive(iso) {
+  const five = bigFive();
+  if (playKind !== "neighbours" || !five.includes(iso)) return;
+  const done = bigFiveDone();
+  if (done.has(iso)) return;
+  done.add(iso);
+  try { localStorage.setItem(BIG_FIVE_KEY + BUILD_TARGET.continent, JSON.stringify([...done])); } catch { /* ignore */ }
+  syncExtras();
+  if (five.every((id) => done.has(id))) showBigFiveWin();
+}
+
+function showBigFiveWin() {
+  const place = { en: BUILD_TARGET.en, zh: BUILD_TARGET.zh };
+  $("win-en").textContent = `You won the Neighbours game for ${place.en}!`;
+  $("win-zh").textContent = `你赢得了${place.zh}邻国游戏！`;
+  $("win-five").hidden = false;
+}
+
+function countryName(iso) {
+  const meta = shapeByIso.get(iso)?.properties;
+  return meta ? pick({ en: meta.name, zh: meta.zh }) : { main: iso, sub: "" };
+}
+
+function syncExtras(force) {
+  const globeView = mode === "world" || mode === "asia";
+  // Nav panel
+  $("nav-panel").hidden = !globeView;
+  if (globeView && (force || navForMode !== mode)) renderNav();
+  else if (globeView) paintNavActive();
+  if (!globeView) navForMode = "";
+  // Difficulty
+  const kind = diffKind();
+  $("diff-wrap").hidden = !kind || !difficulty[kind];
+  $("diff-toggle").textContent = line({ en: "Difficulty", zh: "难度" });
+  $("diff-toggle").setAttribute("aria-pressed", String(diffOn));
+  $("diff-legend").hidden = !diffOn || !kind;
+  if (diffOn && kind) renderLegend(kind);
+  document.querySelectorAll(".tray-tile").forEach((tile) => {
+    const color = diffOn && kind === "build" ? gradeColor("build", tile.dataset.code) : null;
+    if (color) { tile.dataset.grade = "1"; tile.style.setProperty("--grade", color); }
+    else { delete tile.dataset.grade; tile.style.removeProperty("--grade"); }
+  });
+  // Big Five tracker: Asia view and neighbours puzzles
+  const five = bigFive();
+  const showFive = five.length && (mode === "asia" || (mode === "puzzle" && playKind === "neighbours"));
+  $("big-five").hidden = !showFive;
+  if (showFive) {
+    const done = bigFiveDone();
+    const title = pick({ en: `⭐ ${BUILD_TARGET.en} Big Five ${[...done].filter((i) => five.includes(i)).length}/5`, zh: `⭐ ${BUILD_TARGET.zh}五大挑战 ${[...done].filter((i) => five.includes(i)).length}/5` });
+    $("big-five").innerHTML = `<div class="bf-title">${esc(title.main)}</div>` + five.map((iso) => {
+      const ok = done.has(iso);
+      const cls = `bf-row${ok ? " done" : ""}${mode === "puzzle" && centreIso === iso ? " here" : ""}`;
+      return `<div class="${cls}"><span>${ok ? "✅" : "☆"}</span><span>${esc(countryName(iso).main)}</span></div>`;
+    }).join("");
+  }
+}
+
+function renderLegend(kind) {
+  const table = difficulty[kind];
+  const head = kind === "build"
+    ? { en: "Build Continents difficulty", zh: "拼大洲难度", noteEn: "Tiny, inland, plain-shaped countries are harder to place.", noteZh: "小的、内陆的、形状普通的国家更难放。" }
+    : { en: "Neighbours difficulty", zh: "邻国游戏难度", noteEn: "More neighbours, short borders and look-alike shapes make it harder.", noteZh: "邻国多、边界短、形状相似就更难。" };
+  const tabs = mode !== "puzzle"
+    ? `<div class="lg-tabs"><button type="button" data-kind="neighbours" aria-pressed="${kind === "neighbours"}">${esc(line({ en: "Neighbours", zh: "邻国" }))}</button><button type="button" data-kind="build" aria-pressed="${kind === "build"}">${esc(line({ en: "Build", zh: "拼大洲" }))}</button></div>`
+    : "";
+  $("diff-legend").innerHTML = tabs
+    + `<div class="lg-title">${esc(line({ en: head.en, zh: head.zh }))}</div>`
+    + `<div class="lg-note">${esc(line({ en: head.noteEn, zh: head.noteZh }))}</div>`
+    + table.levels.map((lv) => `<div class="lg-row"><i style="background:${lv.color}"></i>${esc(line({ en: lv.en, zh: lv.zh }))}</div>`).join("");
+  $("diff-legend").querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => {
+    diffGlobeKind = b.dataset.kind;
+    syncExtras();
+    requestDraw();
+  }));
+}
+
+function renderNav() {
+  navForMode = mode;
+  const list = $("nav-list");
+  if (mode === "world") {
+    navIso = null;
+    $("nav-up").hidden = true;
+    $("nav-title").textContent = line({ en: "Continents", zh: "大洲" });
+    list.innerHTML = NAV_CONTINENTS.map((c) => {
+      const name = pick({ en: c.id, zh: c.zh });
+      const soon = c.id !== BUILD_TARGET.continent;
+      return `<button type="button" role="listitem" class="nav-row${soon ? " soon" : ""}" data-cont="${esc(c.id)}"><span class="nav-name">${esc(name.main)}${name.sub ? `<span class="nav-sub">${esc(name.sub)}</span>` : ""}</span>${soon ? "" : "<span>›</span>"}</button>`;
+    }).join("");
+    list.querySelectorAll("[data-cont]").forEach((b) => b.addEventListener("click", () => navContinent(b.dataset.cont)));
+    return;
+  }
+  $("nav-up").hidden = false;
+  $("nav-up").textContent = `‹ ${line({ en: "Continents", zh: "大洲" })}`;
+  const place = pick({ en: BUILD_TARGET.en, zh: BUILD_TARGET.zh });
+  $("nav-title").textContent = place.main;
+  const five = new Set(bigFive());
+  const done = bigFiveDone();
+  const isos = buildIsos.slice().sort((a, b) => countryName(a).main.localeCompare(countryName(b).main));
+  list.innerHTML = isos.map((iso) => {
+    const name = countryName(iso);
+    const star = five.has(iso) ? `<span class="star" title="Big Five">${done.has(iso) ? "✅" : "⭐"}</span>` : "";
+    return `<button type="button" role="listitem" class="nav-row" data-iso="${iso}"><span class="dot"></span><span class="nav-name">${esc(name.main)}${name.sub ? `<span class="nav-sub">${esc(name.sub)}</span>` : ""}</span>${star}</button>`;
+  }).join("");
+  list.querySelectorAll("[data-iso]").forEach((b) => b.addEventListener("click", () => navCountry(b.dataset.iso)));
+  paintNavActive();
+}
+
+function paintNavActive() {
+  const kind = diffKind();
+  document.querySelectorAll("#nav-list [data-iso]").forEach((row) => {
+    const iso = row.dataset.iso;
+    row.classList.toggle("active", iso === navIso);
+    const color = diffOn && kind ? gradeColor(kind, iso) : null;
+    row.querySelector(".dot").style.background = color || "transparent";
+  });
+  document.querySelectorAll(".nav-play").forEach((el) => el.remove());
+  if (!navIso) return;
+  const row = document.querySelector(`#nav-list [data-iso="${navIso}"]`);
+  if (!row) return;
+  const play = document.createElement("button");
+  play.type = "button";
+  play.className = "nav-play";
+  const nbs = borders.neighbours[navIso];
+  play.textContent = nbs && nbs.length ? `▶ ${line({ en: "Play neighbours", zh: "开始邻国游戏" })}` : line({ en: "No land neighbours", zh: "没有陆地邻国" });
+  play.addEventListener("click", () => startFromGlobe(shapeByIso.get(navIso)));
+  row.after(play);
+}
+
+function navContinent(id) {
+  const c = NAV_CONTINENTS.find((x) => x.id === id);
+  if (!c) return;
+  if (id === BUILD_TARGET.continent) { enterAsia(); return; }
+  globe.targetLon = c.lon;
+  globe.targetLat = c.lat;
+  globeAnchor = null;
+  animateGlobe();
+  showToast({ en: `Coming soon — ${id}`, zh: `即将推出 · ${c.zh}` });
+}
+
+function navCountry(iso) {
+  const meta = shapeByIso.get(iso)?.properties;
+  if (!meta) return;
+  navIso = iso;
+  globe.targetLon = meta.label[0];
+  globe.targetLat = meta.label[1];
+  globe.targetMul = Math.max(globe.targetMul, 1.25);
+  globeAnchor = null;
+  animateGlobe();
+  paintNavActive();
+  const row = document.querySelector(`#nav-list [data-iso="${iso}"]`);
+  if (row) row.scrollIntoView({ block: "nearest" });
+  requestDraw();
+}
+
+/** Same outcome as clicking the country on the globe in continent view. */
+function startFromGlobe(f) {
+  if (!f) return;
+  const iso = f.properties.iso;
+  const nbs = borders.neighbours[iso];
+  if (!nbs || !nbs.length) {
+    showToast({ en: `${f.properties.name} has no land neighbours.`, zh: `${f.properties.zh}没有陆地邻国。` });
+    return;
+  }
+  enterPuzzle(iso);
+}
+
+function gradeContext(w, h) {
+  const el = $("grade");
+  const ratio = pixelRatio();
+  const bw = Math.max(1, Math.round(w * ratio));
+  const bh = Math.max(1, Math.round(h * ratio));
+  if (el.width !== bw || el.height !== bh) { el.width = bw; el.height = bh; }
+  const ctx = el.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  return ctx;
+}
+
+function drawGrade() {
+  const w = view.width, h = view.height;
+  const ctx = gradeContext(w, h);
+  const kind = diffOn ? diffKind() : null;
+  const globeView = mode !== "puzzle";
+  if (globeView) {
+    const radius = globeRadius();
+    ortho.rotate([-globe.lon0, -globe.lat0]).translate([w / 2, h / 2]).scale(radius);
+    const path = d3.geoPath(ortho, ctx);
+    if (kind && diffRows(kind)) {
+      ctx.globalAlpha = 0.62;
+      for (const [iso, f] of shapeByIso) {
+        const color = gradeColor(kind, iso);
+        if (!color) continue;
+        ctx.beginPath(); path(f); ctx.fillStyle = color; ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    if (navIso && mode === "asia" && shapeByIso.has(navIso)) {
+      ctx.beginPath(); path(shapeByIso.get(navIso));
+      ctx.fillStyle = "rgba(255, 236, 170, 0.35)"; ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = "#ffe08a"; ctx.stroke();
+    }
+    return;
+  }
+  if (!kind) return;
+  ctx.globalAlpha = 0.5;
+  for (const piece of pieces.values()) {
+    const color = gradeColor(kind, piece.iso);
+    const mesh = meshes.get(piece.iso);
+    if (!color || !mesh) continue;
+    ctx.beginPath();
+    for (const ring of mesh.rings) {
+      ring.forEach(([x, y], i) => {
+        const s = screenOf(piece.cx + piece.scale * x, piece.cy + piece.scale * y);
+        if (i) ctx.lineTo(s.x, s.y); else ctx.moveTo(s.x, s.y);
+      });
+      ctx.closePath();
+    }
+    ctx.fillStyle = color;
+    ctx.fill("evenodd");
+  }
+  ctx.globalAlpha = 1;
+}
+
+Object.defineProperties(window.__game, Object.getOwnPropertyDescriptors({
+  get difficulty() { return { on: diffOn, kind: diffKind() }; },
+  setDifficulty(on, kind) { diffOn = !!on; if (kind) diffGlobeKind = kind; syncExtras(); requestDraw(); return { on: diffOn, kind: diffKind() }; },
+  navContinent: (id) => navContinent(id),
+  navCountry: (iso) => navCountry(String(iso).toUpperCase()),
+  get navSelected() { return navIso; },
+  get bigFive() { return { five: bigFive(), done: [...bigFiveDone()] }; },
+  completeBigFive: (iso) => noteBigFive(String(iso).toUpperCase()),
+}));

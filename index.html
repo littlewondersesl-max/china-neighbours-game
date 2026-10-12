@@ -14,6 +14,7 @@
         <div id="playfield">
           <svg id="graticule" aria-hidden="true"></svg>
           <canvas id="gl"></canvas>
+          <canvas id="grade" aria-hidden="true"></canvas>
           <canvas id="strokes" aria-hidden="true"></canvas>
           <svg id="overlay" aria-hidden="true">
             <g id="ghosts"></g>
@@ -30,6 +31,16 @@
             <button type="button" id="skin-next" aria-label="Next look">›</button>
           </div>
           <div id="title"></div>
+          <nav id="nav-panel" hidden aria-label="Places">
+            <button type="button" id="nav-up" hidden>‹ Continents</button>
+            <div id="nav-title"></div>
+            <div id="nav-list" role="list"></div>
+          </nav>
+          <div id="diff-wrap" hidden>
+            <div id="diff-legend" hidden></div>
+            <button type="button" id="diff-toggle" aria-pressed="false">Difficulty</button>
+          </div>
+          <div id="big-five" hidden></div>
           <div id="puzzle-tools" hidden>
             <div id="progress" hidden></div>
             <button type="button" id="reveal-map" aria-pressed="false">Reveal map</button>
@@ -99,6 +110,15 @@
       <p class="reward-en" id="reward-en"></p>
       <p class="reward-zh" id="reward-zh"></p>
       <button type="button" id="reward-back">Back to map</button>
+    </div>
+  </div>
+
+  <div id="win-five" hidden>
+    <div class="win-panel">
+      <div class="win-stars" aria-hidden="true">⭐🌏⭐</div>
+      <p class="win-en" id="win-en"></p>
+      <p class="win-zh" id="win-zh"></p>
+      <button type="button" id="win-ok">Hooray!</button>
     </div>
   </div>
 
